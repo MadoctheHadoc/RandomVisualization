@@ -50,6 +50,48 @@ selected_countries = ['United States', 'China', 'India']
 df_data = df[df['Location'] != 'World'].copy()
 
 # Define regions and member countries
+simplified_regions = [
+    {
+        'name': 'Europe (ex. Russia)',
+        'countries': [
+            'Austria', 'Belgium', 'Bulgaria', 'Croatia', 'Cyprus', 'Czech Republic', 'Denmark',
+            'Estonia', 'Finland', 'France', 'Germany', 'Greece', 'Hungary', 'Ireland', 'Italy',
+            'Latvia', 'Lithuania', 'Luxembourg', 'Malta', 'Netherlands', 'Poland', 'Portugal',
+            'Romania', 'Slovakia', 'Slovenia', 'Spain', 'Sweden', 'Ukraine', 'Belarus',
+            'Armenia', 'Georgia', 'Azerbaijan', 'Bosnia and Herzegovina', 'Serbia', 'Montenegro',
+            'Albania', 'United Kingdom', 'Norway', 'Switzerland', 'Liechtenstein'
+        ]
+    },
+    {
+        'name': 'Africa',
+        'countries': [
+            'Nigeria', 'South Africa', 'Ethiopia', 'Kenya', 'Tanzania', 'Uganda', 'Ghana', 'Angola',
+            'Mozambique', 'Ivory Coast', 'Cameroon', 'Niger', 'Burkina Faso', 'Mali', 'Malawi',
+            'Zambia', 'Senegal', 'Zimbabwe', 'Rwanda', 'Benin', 'Chad', 'South Sudan', 'Togo',
+            'Sierra Leone', 'Liberia', 'Botswana', 'Namibia', 'Somalia', 'DR Congo', 'Congo',
+            'Gabon', 'Guinea', 'Mauritania', 'Equatorial Guinea', 'Central African Republic', 'Lesotho',
+            'Eswatini', 'Djibouti', 'Eritrea', 'Gambia', 'Guinea-Bissau', 'Burundi', 'Cape Verde',
+            'Comoros', 'Sao Tome and Principe', 'Seychelles', 'Egypt', 'Libya', 'Morocco', 'Algeria', 'Tunisia'
+        ]
+    },
+    {
+        'name': 'Latin America',
+        'countries': [
+            'Argentina', 'Bolivia', 'Brazil', 'Chile', 'Colombia', 'Costa Rica', 'Cuba',
+            'Dominican Republic', 'Ecuador', 'El Salvador', 'Guatemala', 'Honduras',
+            'Mexico', 'Nicaragua', 'Panama', 'Paraguay', 'Peru', 'Uruguay', 'Venezuela',
+            'Haiti', 'Jamaica', 'Trinidad and Tobago', 'Belize'
+        ]
+    },
+    {
+        'name': 'ASEAN',
+        'countries': [
+            'Brunei', 'Cambodia', 'Indonesia', 'Laos', 'Malaysia', 'Myanmar',
+            'Philippines', 'Singapore', 'Thailand', 'Vietnam',
+        ]
+    }
+]
+
 regions = [
     {
         'name': 'EU',
@@ -114,6 +156,7 @@ regions = [
     }
 ]
 
+regions = simplified_regions
 # Tag regions
 df_data['Region'] = 'Other'
 for region in regions:
@@ -160,7 +203,7 @@ df_other = df_data_filtered[~df_data_filtered['Location'].isin(selected_countrie
 df_other_sum = df_other[energy_columns].sum()
 total_other_population = df_other['Population'].sum()
 df_other_df = pd.DataFrame({
-    'Location': ['Other'],
+    'Location': ['Rest of World'],
     'Total': [df_other_sum['Total']],
     'Coal': [df_other_sum['Coal']],
     'Gas': [df_other_sum['Gas']],
@@ -204,62 +247,160 @@ pastel_colors = {
     'Coal': '#fc8469'
 }
 
-# Plot
-# Plot
-fig, ax = plt.subplots(figsize=(14, 8))
-fig.patch.set_facecolor('#2a2a2a')  # Dark background
-ax.set_facecolor('#2a2a2a')
+def plot_desktop():
+    # Plot
+    fig, ax = plt.subplots(figsize=(14, 8))
+    fig.patch.set_facecolor('#2a2a2a')  # Dark background
+    ax.set_facecolor('#2a2a2a')
 
-# Compute left positions based on widths
-left_positions = np.cumsum([0] + df_final['Width'].tolist()[:-1])
+    # Compute left positions based on widths
+    left_positions = np.cumsum([0] + df_final['Width'].tolist()[:-1])
 
-# Draw stacked bars
-bottom = np.zeros(len(df_final))
-for col in ordered_columns:
-    ax.bar(left_positions, df_final[col],
-           width=df_final['Width'], bottom=bottom,
-           label=col, color=pastel_colors[col], align='edge',
-           edgecolor='black', linewidth=0.2)
-    bottom += df_final[col].values
+    # Draw stacked bars
+    bottom = np.zeros(len(df_final))
+    for col in ordered_columns:
+        ax.bar(left_positions, df_final[col],
+               width=df_final['Width'], bottom=bottom,
+               label=col, color=pastel_colors[col], align='edge',
+               edgecolor='black', linewidth=0.2)
+        bottom += df_final[col].values
 
-# Set x-axis labels below bars
-ax.set_xticks(left_positions + df_final['Width'] / 2)
-ax.set_xticklabels(df_final['Location'], rotation=-25, ha='left', fontsize=10, color='white')
+    # Set x-axis labels below bars
+    ax.set_xticks(left_positions + df_final['Width'] / 2)
+    ax.set_xticklabels(df_final['Location'], rotation=-25, ha='left', fontsize=10, color='white')
 
-# Add y-axis grid lines
-ax.yaxis.grid(True, color='white', alpha=0.2)
-ax.set_axisbelow(True)
+    # Add y-axis grid lines
+    ax.yaxis.grid(True, color='white', alpha=0.2)
+    ax.set_axisbelow(True)
 
-# Axis and label styling
-ax.set_xlabel('Population 2025', color='white', fontsize=16)
-ax.set_ylabel('Per Capita Electricity Generation (TWh per person) in 2024', color='white', fontsize=16)
-ax.set_title('Electricity Generation by Population and Source', color='white', fontsize=19)
+    # Axis and label styling
+    ax.set_xlabel('Population 2025', color='white', fontsize=16)
+    ax.set_ylabel('Per Capita Electricity Generation (TWh per person) in 2024', color='white', fontsize=16)
+    ax.set_title('Electricity Generation by Population and Source', color='white', fontsize=19)
 
-# White y-ticks
-ax.tick_params(axis='y', colors='white')
-# White x-ticks
-ax.tick_params(axis='x', colors='white')
+    # White y-ticks
+    ax.tick_params(axis='y', colors='white')
+    # White x-ticks
+    ax.tick_params(axis='x', colors='white')
 
-# Adjust x-axis limit to avoid trailing whitespace
-total_width = left_positions[-1] + df_final['Width'].iloc[-1]
-ax.set_xlim(left=0, right=total_width)
+    # Adjust x-axis limit to avoid trailing whitespace
+    total_width = left_positions[-1] + df_final['Width'].iloc[-1]
+    ax.set_xlim(left=0, right=total_width)
 
-# Legend with dark background and white text
-legend = ax.legend(
-    title="Generation Source",
-    loc='upper right',
-    facecolor='#2a2a2a',
-    edgecolor='white',
-    frameon=True,
-    fontsize=12,         # Legend text size
-    title_fontsize=13    # Legend title size
-)
-plt.setp(legend.get_texts(), color='white')
-plt.setp(legend.get_title(), color='white')
+    # Legend with dark background and white text
+    legend = ax.legend(
+        title="Generation Source",
+        loc='upper right',
+        facecolor='#2a2a2a',
+        edgecolor='white',
+        frameon=True,
+        fontsize=12,         # Legend text size
+        title_fontsize=13    # Legend title size
+    )
+    plt.setp(legend.get_texts(), color='white')
+    plt.setp(legend.get_title(), color='white')
 
-# Remove black outline (spines)
-for spine in ax.spines.values():
-    spine.set_visible(False)
+    # Add source label in bottom-right corner
+    ax.text(
+        1.0, -0.12,
+        "Sources: Ember Energy and Our World in Data\n By u/MadoctheHadoc",
+        fontsize=9,
+        color='white',
+        ha='right',
+        va='top',
+        transform=ax.transAxes
+    )
 
-plt.tight_layout()
-plt.show()
+
+    # Remove black outline (spines)
+    for spine in ax.spines.values():
+        spine.set_visible(False)
+
+    plt.tight_layout()
+    plt.savefig("desktop_chart.png", dpi=300, bbox_inches='tight')
+    plt.show()
+
+def plot_mobile():
+    abbreviations = {
+        'United States': 'USA',
+        'Europe (ex. Russia)': 'Europe',
+        'Latin America': 'Latin\nAmerica',
+    }
+    df_final['Location'] = df_final['Location'].replace(abbreviations)
+    # Plot with portrait layout for mobile
+    fig, ax = plt.subplots(figsize=(10, 12))  # Taller aspect ratio
+    fig.patch.set_facecolor('#2a2a2a')  # Dark background
+    ax.set_facecolor('#2a2a2a')
+
+    # Compute left positions based on widths
+    left_positions = np.cumsum([0] + df_final['Width'].tolist()[:-1])
+
+    # Draw stacked bars
+    bottom = np.zeros(len(df_final))
+    for col in ordered_columns:
+        ax.bar(left_positions, df_final[col],
+               width=df_final['Width'], bottom=bottom,
+               label=col, color=pastel_colors[col], align='edge',
+               edgecolor='black', linewidth=0.2)
+        bottom += df_final[col].values
+
+    # Set x-axis labels below bars
+    ax.set_xticks(left_positions + df_final['Width'] / 2)
+    ax.set_xticklabels(df_final['Location'], rotation=0, ha='center', fontsize=12, color='white')
+
+    # Add y-axis grid lines
+    ax.yaxis.grid(True, color='white', alpha=0.2)
+    ax.set_axisbelow(True)
+
+    # Axis and label styling (larger for mobile readability)
+    ax.set_xlabel('Population (2025)', color='white', fontsize=18, labelpad=10)
+    ax.set_ylabel('Electricity Generation per Capita\n(TWh/person, 2024)', color='white', fontsize=18, labelpad=12)
+    ax.set_title(
+        'Electricity Generation by Population and Source',
+        color='white',
+        fontsize=19,
+        pad=30  # increase the number for more space below the top
+    )
+
+    # White ticks
+    ax.tick_params(axis='x', colors='white', labelsize=12)
+    ax.tick_params(axis='y', colors='white', labelsize=12)
+
+    # Adjust x-axis limit to avoid trailing whitespace
+    total_width = left_positions[-1] + df_final['Width'].iloc[-1]
+    ax.set_xlim(left=0, right=total_width)
+
+    # Legend with larger font and dark background
+    legend = ax.legend(
+        title="Generation Source",
+        loc='upper right',
+        facecolor='#2a2a2a',
+        edgecolor='white',
+        frameon=True,
+        fontsize=14,
+        title_fontsize=15
+    )
+    plt.setp(legend.get_texts(), color='white')
+    plt.setp(legend.get_title(), color='white')
+
+    # Source label in bottom-right corner
+    ax.text(
+        1.0, -0.04,
+        "Sources: Ember Energy and Our World in Data\nBy u/MadoctheHadoc",
+        fontsize=10,
+        color='white',
+        ha='right',
+        va='top',
+        transform=ax.transAxes
+    )
+
+    # Remove black outline (spines)
+    for spine in ax.spines.values():
+        spine.set_visible(False)
+
+    plt.tight_layout()
+    plt.savefig("mobile_chart.png", dpi=300, bbox_inches='tight')
+    plt.show()
+
+plot_mobile()
+
