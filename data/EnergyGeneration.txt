@@ -1,4 +1,4 @@
-Location	Total	Coal	Gas	Hydro	Nuclear	Wind	Solar	Oil	Bio.	Geo.	Year
+Location	Total	Coal	Gas	Hydro	Nuclear	Wind	Solar	Oil	Biomass	Geothermal	Year
  China	10,073	5,860	303	1,354	445	992	834	76	208	0	2024
  United States	4,387	653	1,865	236	782	453	303	30	47	18	2024
  India	2,058	1,534	57	156	54	82	134	4	36	0	2024

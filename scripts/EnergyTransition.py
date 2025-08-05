@@ -39,7 +39,7 @@ df = df.dropna(subset=['Population'])
 df = df[df['Population'] > 0].copy()
 
 # Convert energy columns to numeric
-energy_columns = ['Total', 'Coal', 'Gas', 'Hydro', 'Nuclear', 'Wind', 'Solar', 'Oil', 'Bio.', 'Geo.']
+energy_columns = ['Total', 'Coal', 'Gas', 'Hydro', 'Nuclear', 'Wind', 'Solar', 'Oil', 'Biomass', 'Geothermal']
 for col in energy_columns:
     df[col] = pd.to_numeric(df[col].astype(str).str.replace(',', ''), errors='coerce').fillna(0)
 
@@ -140,8 +140,8 @@ def aggregate_region(df_region, name):
         'Wind': [df_sum['Wind']],
         'Solar': [df_sum['Solar']],
         'Oil': [df_sum['Oil']],
-        'Bio.': [df_sum['Bio.']],
-        'Geo.': [df_sum['Geo.']],
+        'Biomass': [df_sum['Biomass']],
+        'Geothermal': [df_sum['Geothermal']],
         'Population': [population_sum]
     })
 
@@ -169,8 +169,8 @@ df_other_df = pd.DataFrame({
     'Wind': [df_other_sum['Wind']],
     'Solar': [df_other_sum['Solar']],
     'Oil': [df_other_sum['Oil']],
-    'Bio.': [df_other_sum['Bio.']],
-    'Geo.': [df_other_sum['Geo.']],
+    'Biomass': [df_other_sum['Biomass']],
+    'Geothermal': [df_other_sum['Geothermal']],
     'Population': [total_other_population]
 })
 
@@ -187,23 +187,24 @@ max_width = 1.0
 df_final['Width'] = df_final['Population'] / df_final['Population'].max() * max_width
 
 # Plot
-# Sort by Total per capita energy generation (descending)
+# Sort by Total per capita energy generation (descending)s
 df_final = df_final.sort_values(by='Total', ascending=False).reset_index(drop=True)
 
 # Define new energy order and pastel color palette
-ordered_columns = ['Hydro', 'Wind', 'Solar', 'Bio.', 'Geo.', 'Nuclear', 'Gas', 'Oil', 'Coal']
+ordered_columns = ['Hydro', 'Wind', 'Solar', 'Geothermal', 'Biomass', 'Nuclear', 'Gas', 'Oil', 'Coal']
 pastel_colors = {
-    'Hydro': '#49a63f',
-    'Wind': '#63c059',
-    'Solar': '#86ce7e',
-    'Bio.': '#a1d99b',
-    'Geo.': '#bae3b5',
-    'Nuclear': '#80bfff',
-    'Gas': '#fdad9b',
+    'Hydro':     '#6470c0',
+    'Wind':      '#6480b3',
+    'Solar':     '#6490a6',
+    'Geothermal':'#64a09a',
+    'Biomass':   '#64af8e',
+    'Nuclear':   '#64c080',
+    'Gas': '#fcad9c',
     'Oil': '#fc9882',
     'Coal': '#fc8469'
 }
 
+# Plot
 # Plot
 fig, ax = plt.subplots(figsize=(14, 8))
 fig.patch.set_facecolor('#2a2a2a')  # Dark background
@@ -223,41 +224,42 @@ for col in ordered_columns:
 
 # Set x-axis labels below bars
 ax.set_xticks(left_positions + df_final['Width'] / 2)
-ax.set_xticklabels(df_final['Location'], rotation=90, fontsize=8, color='white')
+ax.set_xticklabels(df_final['Location'], rotation=-25, ha='left', fontsize=10, color='white')
 
 # Add y-axis grid lines
 ax.yaxis.grid(True, color='white', alpha=0.2)
 ax.set_axisbelow(True)
 
 # Axis and label styling
-ax.set_xlabel('Country / Region (bar width ~ population)', color='white')
-ax.set_ylabel('Per Capita Electricity Generation (TWh per person)', color='white')
-ax.set_title('Electricity Generation by Population and Source', color='white')
+ax.set_xlabel('Population 2025', color='white', fontsize=16)
+ax.set_ylabel('Per Capita Electricity Generation (TWh per person) in 2024', color='white', fontsize=16)
+ax.set_title('Electricity Generation by Population and Source', color='white', fontsize=19)
 
-# White ticks
+# White y-ticks
 ax.tick_params(axis='y', colors='white')
+# White x-ticks
+ax.tick_params(axis='x', colors='white')
 
-# Legend with white text
+# Adjust x-axis limit to avoid trailing whitespace
+total_width = left_positions[-1] + df_final['Width'].iloc[-1]
+ax.set_xlim(left=0, right=total_width)
+
 # Legend with dark background and white text
 legend = ax.legend(
     title="Generation Source",
     loc='upper right',
     facecolor='#2a2a2a',
     edgecolor='white',
-    frameon=True
+    frameon=True,
+    fontsize=12,         # Legend text size
+    title_fontsize=13    # Legend title size
 )
 plt.setp(legend.get_texts(), color='white')
 plt.setp(legend.get_title(), color='white')
 
-# Final layout
-ax.set_xlim(left=0)
 # Remove black outline (spines)
 for spine in ax.spines.values():
     spine.set_visible(False)
 
-# Diagonal x-axis labels for space efficiency
-ax.set_xticklabels(df_final['Location'], rotation=45, ha='right')
-
 plt.tight_layout()
 plt.show()
-
