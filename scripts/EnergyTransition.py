@@ -242,9 +242,9 @@ pastel_colors = {
     'Geothermal':'#64a09a',
     'Biomass':   '#64af8e',
     'Nuclear':   '#64c080',
-    'Gas': '#fcad9c',
-    'Oil': '#fc9882',
-    'Coal': '#fc8469'
+    'Gas': "#d08661",
+    'Oil': "#bd6b57",
+    'Coal': "#b04444"
 }
 
 def plot_desktop():
@@ -262,7 +262,7 @@ def plot_desktop():
         ax.bar(left_positions, df_final[col],
                width=df_final['Width'], bottom=bottom,
                label=col, color=pastel_colors[col], align='edge',
-               edgecolor='black', linewidth=0.2)
+               edgecolor='black', linewidth=0.0)
         bottom += df_final[col].values
 
     # Set x-axis labels below bars
@@ -288,7 +288,9 @@ def plot_desktop():
     ax.set_xlim(left=0, right=total_width)
 
     # Legend with dark background and white text
+    handles, labels = ax.get_legend_handles_labels()
     legend = ax.legend(
+        handles[::-1], labels[::-1],  # reversed order
         title="Generation Source",
         loc='upper right',
         facecolor='#2a2a2a',
@@ -328,7 +330,7 @@ def plot_mobile():
     }
     df_final['Location'] = df_final['Location'].replace(abbreviations)
     # Plot with portrait layout for mobile
-    fig, ax = plt.subplots(figsize=(10, 12))  # Taller aspect ratio
+    fig, ax = plt.subplots(figsize=(12, 12))
     fig.patch.set_facecolor('#2a2a2a')  # Dark background
     ax.set_facecolor('#2a2a2a')
 
@@ -341,7 +343,7 @@ def plot_mobile():
         ax.bar(left_positions, df_final[col],
                width=df_final['Width'], bottom=bottom,
                label=col, color=pastel_colors[col], align='edge',
-               edgecolor='black', linewidth=0.2)
+               edgecolor='black', linewidth=0.0)
         bottom += df_final[col].values
 
     # Set x-axis labels below bars
@@ -371,7 +373,9 @@ def plot_mobile():
     ax.set_xlim(left=0, right=total_width)
 
     # Legend with larger font and dark background
+    handles, labels = ax.get_legend_handles_labels()
     legend = ax.legend(
+        handles[::-1], labels[::-1],  # reversed order
         title="Generation Source",
         loc='upper right',
         facecolor='#2a2a2a',
@@ -402,5 +406,5 @@ def plot_mobile():
     plt.savefig("mobile_chart.png", dpi=300, bbox_inches='tight')
     plt.show()
 
+# plot_desktop()
 plot_mobile()
-
