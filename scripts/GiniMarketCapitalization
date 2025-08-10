@@ -37,11 +37,13 @@ for symbol in symbols:
         print(f"{symbol} columns:", hist.columns)
 
         if 'Adj Close' not in hist.columns:
-            if 'Close' in hist.columns:
-                hist['Adj Close'] = hist['Close']
-            else:
-                print(f"No Adjusted or Close price for {symbol}, skipping.")
-                continue
+            # Estimate adjusted close by adjusting Close for splits and dividends
+            hist['Adj Close'] = hist['Close'] * hist['Stock Splits'].replace(0,1).cumprod()
+            # Dividends usually require more complex adjustments over time;
+            # if needed, could apply dividend adjustments too but it's complex.
+
+        # Proceed with hist['Adj Close']
+
 
         shares_outstanding = df_companies.loc[df_companies['Symbol'] == symbol, 'SharesOutstanding'].values[0]
 
