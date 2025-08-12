@@ -3,549 +3,494 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
-# --- World Bank indicators ---
-# Choose between nominal GDP or PPP-adjusted GDP
-USE_PPP_ADJUSTED = True  # Set to False for nominal GDP in current USD
 
-if USE_PPP_ADJUSTED:
-    indicators = {
-        'NY.GDP.MKTP.PP.CD': 'TotalGDP_PPP',        # GDP, PPP (current international $)
-        'NV.AGR.TOTL.ZS': 'Agriculture_pct',        # Agriculture value added (% of GDP)
-        'NV.IND.TOTL.ZS': 'Industry_pct',           # Industry value added (% of GDP)
-        'NV.SRV.TOTL.ZS': 'Services_pct',           # Services value added (% of GDP)
-        'SL.AGR.EMPL.ZS': 'Agriculture_emp_pct',    # Employment in agriculture (% of total employment)
-        'SL.IND.EMPL.ZS': 'Industry_emp_pct',       # Employment in industry (% of total employment)  
-        'SL.SRV.EMPL.ZS': 'Services_emp_pct'        # Employment in services (% of total employment)
-    }
-    gdp_column = 'TotalGDP_PPP'
-    gdp_label = 'PPP-adjusted'
-else:
-    indicators = {
-        'NY.GDP.MKTP.CD': 'TotalGDP_USD',           # GDP (current US$)
-        'NV.AGR.TOTL.ZS': 'Agriculture_pct',        # Agriculture value added (% of GDP)
-        'NV.IND.TOTL.ZS': 'Industry_pct',           # Industry value added (% of GDP)
-        'NV.SRV.TOTL.ZS': 'Services_pct',           # Services value added (% of GDP)
-        'SL.AGR.EMPL.ZS': 'Agriculture_emp_pct',    # Employment in agriculture (% of total employment)
-        'SL.IND.EMPL.ZS': 'Industry_emp_pct',       # Employment in industry (% of total employment)
-        'SL.SRV.EMPL.ZS': 'Services_emp_pct'        # Employment in services (% of total employment)
-    }
-    gdp_column = 'TotalGDP_USD'
-    gdp_label = 'nominal'
+# ==================== CONFIG ====================
+USE_PPP_ADJUSTED = True  # False for nominal
+USE_SIMPLIFIED_REGIONS = True
+DATA_YEAR = 2001
 
-pop_indicator = {'SP.POP.TOTL': 'Population'}
+# Update the indicators dictionaries to include resource extraction
+GDP_INDICATORS_PPP = {
+    'NY.GDP.MKTP.PP.CD': 'TotalGDP_PPP',
+    'NV.AGR.TOTL.ZS': 'Agriculture_pct',
+    'NV.IND.TOTL.ZS': 'Industry_pct',
+    'NV.SRV.TOTL.ZS': 'Services_pct',
+    'NV.IND.MANF.ZS': 'Manufacturing_pct',
+    'NY.GDP.TOTL.RT.ZS': 'ResourceExtraction_pct',
+    'SL.AGR.EMPL.ZS': 'Agriculture_emp_pct',
+    'SL.IND.EMPL.ZS': 'Industry_emp_pct',
+    'SL.SRV.EMPL.ZS': 'Services_emp_pct'
+}
 
-# --- Fetch data for recent year (e.g. 2021) ---
-data_year = 2022
+GDP_INDICATORS_NOMINAL = {
+    'NY.GDP.MKTP.CD': 'TotalGDP_USD',
+    'NV.AGR.TOTL.ZS': 'Agriculture_pct',
+    'NV.IND.TOTL.ZS': 'Industry_pct',
+    'NV.SRV.TOTL.ZS': 'Services_pct',
+    'NV.IND.MANF.ZS': 'Manufacturing_pct',
+    'NY.GDP.TOTL.RT.ZS': 'ResourceExtraction_pct',
+    'SL.AGR.EMPL.ZS': 'Agriculture_emp_pct',
+    'SL.IND.EMPL.ZS': 'Industry_emp_pct',
+    'SL.SRV.EMPL.ZS': 'Services_emp_pct'
+}
 
-# Fetch GDP & sector data
-df_gdp = wbdata.get_dataframe(indicators)
-df_gdp = df_gdp.reset_index()
-df_gdp['date'] = pd.to_datetime(df_gdp['date'])
-df_gdp = df_gdp[df_gdp['date'].dt.year == data_year]
+LABOR_FORCE_INDICATOR = {'SL.TLF.TOTL.IN': 'LaborForce'}
 
-# Fetch population data
-df_pop = wbdata.get_dataframe(pop_indicator)
-df_pop = df_pop.reset_index()
-df_pop['date'] = pd.to_datetime(df_pop['date'])
-df_pop = df_pop[df_pop['date'].dt.year == data_year]
+GDP_COLUMN = 'TotalGDP_PPP' if USE_PPP_ADJUSTED else 'TotalGDP_USD'
+GDP_LABEL = 'PPP-adjusted' if USE_PPP_ADJUSTED else 'nominal'
 
-# Merge GDP and population data
-df = pd.merge(df_gdp, df_pop, on=['country', 'date'], how='inner')
+COLORS = {
+    'Agriculture_PC': "#63c652",
+    'ResourceExtraction_PC': "#6dbcfc",
+    'OtherIndustry_PC': "#6d7bfc", 
+    'Manufacturing_PC': "#9961d4",
+    'Services_PC': "#c65252"
+}
 
-# Clean country names column - rename to 'Country'
-df.rename(columns={'country': 'Country'}, inplace=True)
-df['Country'] = df['Country'].str.strip()
 
-print(f"Initial dataset: {len(df)} rows")
-print(f"Countries before deduplication: {df['Country'].nunique()} unique")
+# ==================== REGIONS ====================
+REGIONS = [
+    {'name': 'Western\nEurope', 'countries': [
+        'Austria', 'Belgium', 'Cyprus', 'Denmark', 'Finland', 'France', 'Germany',
+        'Greece', 'Ireland', 'Italy', 'Luxembourg', 'Malta', 'Netherlands',
+        'Portugal', 'Spain', 'Sweden', 'Norway', 'Switzerland', 'Liechtenstein',
+        'Iceland'
+    ]},
+    {'name': 'USA', 'countries': ['United States']},
+    {'name': 'China', 'countries': ['China']},
+    {'name': 'India', 'countries': ['India']},
+    {'name': 'Eastern\nEurope', 'countries': [
+        'Russian Federation', 'Ukraine', 'Belarus', 'Armenia', 'Georgia', 'Azerbaijan',
+        'Albania', 'Bulgaria', 'Croatia', 'Serbia', 'Bosnia and Herzegovina',
+        'Czechia', 'Latvia', 'Lithuania', 'Estonia', 'Hungary', 'Poland',
+        'Romania', 'Slovak Republic', 'Slovenia', 'North Macedonia', 'Montenegro'
+    ]},
+    {'name': 'ASEAN', 'countries': [
+        'Brunei Darussalam', 'Cambodia', 'Indonesia', 'Lao PDR', 'Malaysia', 'Myanmar',
+        'Philippines', 'Thailand', 'Viet Nam'
+    ]},
+    {'name': 'Asian Tigers\n& Japan', 'countries': [
+        'Korea, Rep.', 'Taiwan', 'Hong Kong SAR, China', 'Macao SAR, China', 'Singapore', 'Japan'
+    ]},
+    {'name': 'Africa', 'countries': [
+        'Nigeria', 'South Africa', 'Ethiopia', 'Kenya', 'Tanzania', 'Uganda', 'Ghana', 'Angola',
+        'Mozambique', "Cote d'Ivoire", 'Cameroon', 'Niger', 'Burkina Faso', 'Mali', 'Malawi',
+        'Zambia', 'Senegal', 'Zimbabwe', 'Rwanda', 'Benin', 'Chad', 'South Sudan', 'Togo',
+        'Sierra Leone', 'Liberia', 'Botswana', 'Namibia', 'Somalia', 'Congo, Dem. Rep.', 'Congo, Rep.',
+        'Gabon', 'Guinea', 'Mauritania', 'Equatorial Guinea', 'Central African Republic', 'Lesotho',
+        'Eswatini', 'Djibouti', 'Eritrea', 'Gambia, The', 'Guinea-Bissau', 'Burundi', 'Cabo Verde',
+        'Comoros', 'Sao Tome and Principe', 'Seychelles', 'Egypt, Arab Rep.', 'Libya', 'Morocco',
+        'Algeria', 'Tunisia'
+    ]},
+    {'name': 'Middle\nEast', 'countries': [
+        'Saudi Arabia', 'Iran, Islamic Rep.', 'Iraq', 'Israel', 'Jordan', 'Lebanon', 'Oman', 'Qatar',
+        'United Arab Emirates', 'Bahrain', 'Kuwait', 'Syrian Arab Republic', 'Yemen, Rep.',
+        'West Bank and Gaza', 'Turkiye'
+    ]},
+    {'name': 'Latin\nAmerica', 'countries': [
+        'Argentina', 'Bolivia', 'Brazil', 'Chile', 'Colombia', 'Costa Rica', 'Cuba',
+        'Dominican Republic', 'Ecuador', 'El Salvador', 'Guatemala', 'Honduras',
+        'Mexico', 'Nicaragua', 'Panama', 'Paraguay', 'Peru', 'Uruguay', 'Venezuela, RB',
+        'Haiti', 'Jamaica', 'Trinidad and Tobago', 'Belize'
+    ]},
+    {'name': 'CANZUK', 'countries': ['Canada', 'Australia', 'New Zealand', 'United Kingdom']},
+    {'name': 'Rest of Asia', 'countries': [
+        'Afghanistan', 'Bangladesh', 'Bhutan', 'Nepal', 'Pakistan',  # South Asia not in India
+        'Kazakhstan', 'Kyrgyz Republic', 'Tajikistan', 'Turkmenistan', 'Uzbekistan',  # Central Asia
+        'Mongolia', 'Sri Lanka', 'Maldives'  # Other Asian states
+    ]}
+]
 
-# Check for duplicates BEFORE removing them
-duplicates = df[df.duplicated(subset=['Country'], keep=False)]
-if len(duplicates) > 0:
-    print(f"\nFound {len(duplicates)} duplicate rows:")
-    print(duplicates[['Country', 'date', 'Population']].sort_values(['Country', 'date']))
+SIMPLIFIED_REGIONS = [
+    {'name': 'USA', 'countries': ['United States']},
+    {'name': 'China', 'countries': ['China']},
+    {'name': 'South Asia', 'countries': [
+        'India', 'Pakistan', 'Bangladesh', 'Sri Lanka', 'Nepal', 'Bhutan', 'Maldives', 'Afghanistan'
+    ]},
+    {'name': 'EEA', 'countries': [
+        'Austria', 'Belgium', 'Cyprus', 'Denmark', 'Finland', 'France', 'Germany',
+        'Greece', 'Ireland', 'Italy', 'Luxembourg', 'Malta', 'Netherlands',
+        'Portugal', 'Spain', 'Sweden', 'Norway', 'Switzerland', 'Liechtenstein',
+        'Iceland', 'Bulgaria', 'Croatia', 'Czechia', 'Latvia', 'Lithuania', 'Estonia',
+        'Hungary', 'Poland', 'Romania', 'Slovak Republic', 'Slovenia'
+    ]},
+    {'name': 'ASEAN', 'countries': [
+        'Brunei Darussalam', 'Cambodia', 'Indonesia', 'Lao PDR', 'Malaysia', 'Myanmar',
+        'Philippines', 'Thailand', 'Viet Nam', 'Singapore'
+    ]},
+    {'name': 'Africa', 'countries': [
+        'Nigeria', 'South Africa', 'Ethiopia', 'Kenya', 'Tanzania', 'Uganda', 'Ghana', 'Angola',
+        'Mozambique', "Cote d'Ivoire", 'Cameroon', 'Niger', 'Burkina Faso', 'Mali', 'Malawi',
+        'Zambia', 'Senegal', 'Zimbabwe', 'Rwanda', 'Benin', 'Chad', 'South Sudan', 'Togo',
+        'Sierra Leone', 'Liberia', 'Botswana', 'Namibia', 'Somalia', 'Congo, Dem. Rep.', 'Congo, Rep.',
+        'Gabon', 'Guinea', 'Mauritania', 'Equatorial Guinea', 'Central African Republic', 'Lesotho',
+        'Eswatini', 'Djibouti', 'Eritrea', 'Gambia, The', 'Guinea-Bissau', 'Burundi', 'Cabo Verde',
+        'Comoros', 'Sao Tome and Principe', 'Seychelles', 'Egypt, Arab Rep.', 'Libya', 'Morocco',
+        'Algeria', 'Tunisia'
+    ]},
+    {'name': 'Middle\nEast', 'countries': [
+        'Saudi Arabia', 'Iran, Islamic Rep.', 'Iraq', 'Israel', 'Jordan', 'Lebanon', 'Oman', 'Qatar',
+        'United Arab Emirates', 'Bahrain', 'Kuwait', 'Syrian Arab Republic', 'Yemen, Rep.',
+        'West Bank and Gaza', 'Turkiye'
+    ]},
+    {'name': 'Other\nDeveloped', 'countries': [
+        'Japan', 'Korea, Rep.', 'Canada', 'Australia', 'New Zealand', 'Hong Kong SAR, China',
+        'Macao SAR, China', 'Taiwan', 'Israel', 'United Kingdom'
+    ]}
+]
 
-# Remove duplicates - keep latest year rows
-df = df.sort_values('date').drop_duplicates(subset=['Country'], keep='last')
-print(f"After deduplication: {len(df)} rows, {df['Country'].nunique()} unique countries")
+# ==================== FUNCTIONS ====================
 
-# --- Filter out World Bank regional/income/development aggregates ---
-# More comprehensive approach: filter out anything that looks like an aggregate
-def is_country_entity(country_name):
-    """Return True if this looks like an actual country, False if it's an aggregate"""
-    
-    # Direct aggregate patterns
+def fetch_world_bank_data(indicators, year):
+    """Fetch GDP/sector data and population for a given year."""
+    df_gdp = wbdata.get_dataframe(indicators).reset_index()
+    df_gdp['date'] = pd.to_datetime(df_gdp['date'])
+    df_gdp = df_gdp[df_gdp['date'].dt.year == year]
+
+    df_lab = wbdata.get_dataframe(LABOR_FORCE_INDICATOR).reset_index()
+    df_lab['date'] = pd.to_datetime(df_lab['date'])
+    df_lab = df_lab[df_lab['date'].dt.year == year]
+
+    df = pd.merge(df_gdp, df_lab, on=['country', 'date'], how='inner')
+    df.rename(columns={'country': 'Country'}, inplace=True)
+    df['Country'] = df['Country'].str.strip()
+    return df
+
+def is_country_entity(name):
     aggregate_keywords = [
         '&', 'IDA', 'IBRD', 'income', 'demographic', 'OECD', 'HIPC',
-        'small states', 'classification', 'members', 'countries',
-        'excluding', '(US)', 'SAR'  # Special Administrative Region entries like Hong Kong should be kept
+        'small states', 'classification', 'members', 'countries', 'excluding', '(US)'
     ]
-    
-    # Remove SAR from the list since we want to keep those
-    aggregate_keywords = [k for k in aggregate_keywords if k != 'SAR']
-    
-    # Check for aggregate keywords (but keep SAR entities)
-    if any(keyword in country_name for keyword in aggregate_keywords):
-        # Exception: keep SAR entities (Hong Kong, Macau)
-        if 'SAR' in country_name:
-            return True
-        # Exception: keep Puerto Rico
-        if 'Puerto Rico' in country_name:
+    if any(k in name for k in aggregate_keywords):
+        if 'SAR' in name or 'Puerto Rico' in name:
             return True
         return False
-    
-    # Geographic aggregate regions
+
     geographic_aggregates = [
         'World', 'Arab World', 'Euro area', 'European Union',
         'Africa Eastern and Southern', 'Africa Western and Central',
-        'East Asia & Pacific', 'Europe & Central Asia', 
+        'East Asia & Pacific', 'Europe & Central Asia',
         'Latin America & Caribbean', 'Middle East, North Africa',
         'North America', 'South Asia', 'Sub-Saharan Africa',
         'Caribbean small states', 'Pacific island small states',
         'Central Europe and the Baltics', 'Other small states',
         'Fragile and conflict affected situations'
     ]
+    return not any(name.startswith(geo) for geo in geographic_aggregates)
+
+def clean_data(df):
+    df = df.sort_values('date').drop_duplicates(subset=['Country'], keep='last')
+    df = df[df['Country'].apply(is_country_entity)]
+    return df
+
+# Also need to fix the calculate_gdp_metrics function to avoid the pandas warning
+def calculate_gdp_metrics(df):
+    df = df.copy()  # Create a copy to avoid the warning
     
-    if any(country_name.startswith(geo) for geo in geographic_aggregates):
-        return False
-    
-    return True
+    df['Agricultural (PPP/USD)'] = df['Agriculture_pct'] / 100 * df[GDP_COLUMN]
+    df['Industrial (PPP/USD)'] = df['Industry_pct'] / 100 * df[GDP_COLUMN]
+    df['Service (PPP/USD)'] = df['Services_pct'] / 100 * df[GDP_COLUMN]
 
-# Filter out aggregates
-df_before_filter = len(df)
-df = df[df['Country'].apply(is_country_entity)]
-print(f"After filtering out {df_before_filter - len(df)} aggregate entities: {len(df)} countries")
+    df['LaborForce'] = df['LaborForce'].astype(float)
+    df['Agriculture_PC'] = df['Agricultural (PPP/USD)'] / df['LaborForce']
+    df['Industry_PC'] = df['Industrial (PPP/USD)'] / df['LaborForce']
+    df['Services_PC'] = df['Service (PPP/USD)'] / df['LaborForce']
 
-# --- Calculate sector GDP in PPP or USD ---
-df['Agricultural (PPP/USD)'] = df['Agriculture_pct'] / 100 * df[gdp_column]
-df['Industrial (PPP/USD)'] = df['Industry_pct'] / 100 * df[gdp_column]
-df['Service (PPP/USD)'] = df['Services_pct'] / 100 * df[gdp_column]
+    df = df.dropna(subset=['Agriculture_emp_pct', 'Industry_emp_pct', 'Services_emp_pct'])
+    df['Agriculture_Employment'] = df['Agriculture_emp_pct'] / 100 * df['LaborForce']
+    df['Industry_Employment'] = df['Industry_emp_pct'] / 100 * df['LaborForce']
+    df['Services_Employment'] = df['Services_emp_pct'] / 100 * df['LaborForce']
 
-# --- Calculate per capita GDP by sector ---
-df['Population'] = df['Population'].astype(float)
-df['Agriculture_PC'] = df['Agricultural (PPP/USD)'] / df['Population']
-df['Industry_PC'] = df['Industrial (PPP/USD)'] / df['Population']
-df['Services_PC'] = df['Service (PPP/USD)'] / df['Population']
+    df['Agriculture_Productivity'] = df['Agricultural (PPP/USD)'] / df['Agriculture_Employment']
+    df['Industry_Productivity'] = df['Industrial (PPP/USD)'] / df['Industry_Employment']
+    df['Services_Productivity'] = df['Service (PPP/USD)'] / df['Services_Employment']
 
-# --- Calculate GDP per worker by sector (productivity) ---
-# This requires employment data - filter out countries without employment data
-df = df.dropna(subset=['Agriculture_emp_pct', 'Industry_emp_pct', 'Services_emp_pct'])
-print(f"After filtering for employment data: {len(df)} countries")
+    for col in ['Agriculture_Productivity', 'Industry_Productivity', 'Services_Productivity']:
+        df[col] = df[col].replace([np.inf, -np.inf], 0)
 
-# Calculate total employment (assuming total labor force)
-# We'll use a proxy: assume total employment is proportional to population aged 15-64
-# For simplicity, we'll use total population * 0.6 as rough employed population estimate
-df['Total_Employment_Est'] = df['Population'] * 0.6  # Rough estimate
+    # Calculate manufacturing, resource extraction, and other industry
+    df['Manufacturing (PPP/USD)'] = df['Manufacturing_pct'] / 100 * df[GDP_COLUMN]
+    df['ResourceExtraction (PPP/USD)'] = df['ResourceExtraction_pct'] / 100 * df[GDP_COLUMN]
+    df['OtherIndustry (PPP/USD)'] = df['Industrial (PPP/USD)'] - df['Manufacturing (PPP/USD)'] - df['ResourceExtraction (PPP/USD)']
 
-# Calculate employment by sector
-df['Agriculture_Employment'] = df['Agriculture_emp_pct'] / 100 * df['Total_Employment_Est']
-df['Industry_Employment'] = df['Industry_emp_pct'] / 100 * df['Total_Employment_Est']  
-df['Services_Employment'] = df['Services_emp_pct'] / 100 * df['Total_Employment_Est']
+    # Per capita values (now per labor force member)
+    df['Manufacturing_PC'] = df['Manufacturing (PPP/USD)'] / df['LaborForce']
+    df['ResourceExtraction_PC'] = df['ResourceExtraction (PPP/USD)'] / df['LaborForce']
+    df['OtherIndustry_PC'] = df['OtherIndustry (PPP/USD)'] / df['LaborForce']
 
-# Calculate GDP per worker (productivity) by sector
-df['Agriculture_Productivity'] = df['Agricultural (PPP/USD)'] / df['Agriculture_Employment']
-df['Industry_Productivity'] = df['Industrial (PPP/USD)'] / df['Industry_Employment']
-df['Services_Productivity'] = df['Service (PPP/USD)'] / df['Services_Employment']
+    # Productivity (assuming employment breakdown is only total industry)
+    df['Manufacturing_Productivity'] = df['Manufacturing (PPP/USD)'] / df['Industry_Employment']
+    df['ResourceExtraction_Productivity'] = df['ResourceExtraction (PPP/USD)'] / df['Industry_Employment']
+    df['OtherIndustry_Productivity'] = df['OtherIndustry (PPP/USD)'] / df['Industry_Employment']
 
-# Handle division by zero (when employment is 0%)
-df['Agriculture_Productivity'] = df['Agriculture_Productivity'].replace([np.inf, -np.inf], 0)
-df['Industry_Productivity'] = df['Industry_Productivity'].replace([np.inf, -np.inf], 0)
-df['Services_Productivity'] = df['Services_Productivity'].replace([np.inf, -np.inf], 0)
+    # Replace inf values
+    for col in ['Manufacturing_Productivity', 'ResourceExtraction_Productivity', 'OtherIndustry_Productivity']:
+        df[col] = df[col].replace([np.inf, -np.inf], 0)
 
-# Use your original manual regional groupings
-regions = [
-    {
-        'name': 'Western Europe',
-        'countries': [
-            'Austria', 'Belgium', 'Cyprus', 'Denmark', 'Finland', 'France', 'Germany',
-            'Greece', 'Ireland', 'Italy', 'Luxembourg', 'Malta', 'Netherlands',
-            'Portugal', 'Spain', 'Sweden', 'Norway', 'Switzerland', 'Liechtenstein',
-            'Iceland'
-        ]
-    },
-    {
-        'name': 'USA',
-        'countries': ['United States']
-    },
-    {
-        'name': 'China',
-        'countries': ['China']
-    },
-    {
-        'name': 'India',
-        'countries': ['India']
-    },
-    {
-        'name': 'Eastern Europe',
-        'countries': [
-            'Russian Federation', 'Ukraine', 'Belarus', 'Armenia', 'Georgia', 'Azerbaijan',
-            'Albania', 'Bulgaria', 'Croatia', 'Serbia', 'Bosnia and Herzegovina',
-            'Czechia', 'Latvia', 'Lithuania', 'Estonia', 'Hungary', 'Poland',
-            'Romania', 'Slovak Republic', 'Slovenia', 'North Macedonia', 'Montenegro'
-        ]
-    },
-    {
-        'name': 'ASEAN',
-        'countries': [
-            'Brunei Darussalam', 'Cambodia', 'Indonesia', 'Lao PDR', 'Malaysia', 'Myanmar',
-            'Philippines', 'Thailand', 'Viet Nam'
-        ]
-    },
-    {
-        'name': 'Asian Tigers & Japan',
-        'countries': ['Korea, Rep.', 'Taiwan', 'Hong Kong SAR, China', 'Macao SAR, China', 'Singapore', 'Japan']
-    },
-    {
-        'name': 'Africa',
-        'countries': [
-            'Nigeria', 'South Africa', 'Ethiopia', 'Kenya', 'Tanzania', 'Uganda', 'Ghana', 'Angola',
-            'Mozambique', 'Cote d\'Ivoire', 'Cameroon', 'Niger', 'Burkina Faso', 'Mali', 'Malawi',
-            'Zambia', 'Senegal', 'Zimbabwe', 'Rwanda', 'Benin', 'Chad', 'South Sudan', 'Togo',
-            'Sierra Leone', 'Liberia', 'Botswana', 'Namibia', 'Somalia', 'Congo, Dem. Rep.', 'Congo, Rep.',
-            'Gabon', 'Guinea', 'Mauritania', 'Equatorial Guinea', 'Central African Republic', 'Lesotho',
-            'Eswatini', 'Djibouti', 'Eritrea', 'Gambia, The', 'Guinea-Bissau', 'Burundi', 'Cabo Verde',
-            'Comoros', 'Sao Tome and Principe', 'Seychelles', 'Egypt, Arab Rep.', 'Libya', 'Morocco', 'Algeria', 'Tunisia'
-        ]
-    },
-    {
-        'name': 'Middle East',
-        'countries': [
-            'Saudi Arabia', 'Iran, Islamic Rep.', 'Iraq', 'Israel', 'Jordan', 'Lebanon', 'Oman', 'Qatar', 
-            'United Arab Emirates', 'Bahrain', 'Kuwait', 'Syrian Arab Republic', 'Yemen, Rep.', 'West Bank and Gaza', 'Turkiye'
-        ]
-    },
-    {
-        'name': 'Latin America',
-        'countries': [
-            'Argentina', 'Bolivia', 'Brazil', 'Chile', 'Colombia', 'Costa Rica', 'Cuba',
-            'Dominican Republic', 'Ecuador', 'El Salvador', 'Guatemala', 'Honduras',
-            'Mexico', 'Nicaragua', 'Panama', 'Paraguay', 'Peru', 'Uruguay', 'Venezuela, RB',
-            'Haiti', 'Jamaica', 'Trinidad and Tobago', 'Belize'
-        ]
-    },
-    {
-        'name': 'CANZUK',
-        'countries': ['Canada', 'Australia', 'New Zealand', 'United Kingdom']
-    }
-]
+    return df
 
+def assign_regions(df, regions):
+    df['Region'] = 'Other'
+    for region in regions:
+        df.loc[df['Country'].isin(region['countries']), 'Region'] = region['name']
+    return df
 
-# --- Assign regions to countries ---
-df['Region'] = 'Other'
-total_assigned = 0
-for region in regions:
-    matches = df['Country'].isin(region['countries'])
-    df.loc[matches, 'Region'] = region['name']
-    assigned_count = matches.sum()
-    total_assigned += assigned_count
-    
-    if assigned_count > 0:
-        assigned_pop = df[df['Region'] == region['name']]['Population'].sum()
-
-other_count = len(df[df['Region'] == 'Other'])
-other_pop = df[df['Region'] == 'Other']['Population'].sum()
-
-# --- Aggregate by region ---
 def aggregate_region(df_region, name):
     if len(df_region) == 0:
-        return pd.Series({
-            'Country': name,
-            'Agriculture_PC': 0,
-            'Industry_PC': 0,
-            'Services_PC': 0,
-            'Agriculture_emp_pct': 0,
-            'Industry_emp_pct': 0,
-            'Services_emp_pct': 0,
-            'Agriculture_Productivity': 0,
-            'Industry_Productivity': 0,
-            'Services_Productivity': 0,
-            'Population': 0
-        })
+        return pd.Series({'Country': name, 'LaborForce': 0, **{k: 0 for k in [
+            'Agriculture_PC', 'Industry_PC', 'Services_PC',
+            'Agriculture_emp_pct', 'Industry_emp_pct', 'Services_emp_pct',
+            'Agriculture_Productivity', 'Industry_Productivity', 'Services_Productivity',
+            'Manufacturing_Productivity', 'ResourceExtraction_Productivity', 'OtherIndustry_Productivity',
+            'Agriculture_Width', 'Industry_Width', 'Services_Width',
+            'Agriculture_Employment', 'Industry_Employment', 'Services_Employment',
+            'Manufacturing_Employment', 'ResourceExtraction_Employment', 'OtherIndustry_Employment'
+        ]}})
     
-    total_pop = df_region['Population'].sum()
-    total_employment = df_region['Total_Employment_Est'].sum()
+    total_labor_force = df_region['LaborForce'].sum()
+    agr_emp = df_region['Agriculture_Employment'].sum()
+    ind_emp = df_region['Industry_Employment'].sum()
+    srv_emp = df_region['Services_Employment'].sum()
     
-    # Aggregate employment percentages (weighted by employment)
-    agr_emp_total = df_region['Agriculture_Employment'].sum()
-    ind_emp_total = df_region['Industry_Employment'].sum()
-    srv_emp_total = df_region['Services_Employment'].sum()
+    # Calculate employment for each industry subsector
+    total_industrial_gdp = df_region['Industrial (PPP/USD)'].sum()
+    total_manufacturing_gdp = df_region['Manufacturing (PPP/USD)'].sum()
+    total_resource_gdp = df_region['ResourceExtraction (PPP/USD)'].sum()
+    total_other_industry_gdp = total_industrial_gdp - total_manufacturing_gdp - total_resource_gdp
     
-    agg = pd.Series({
+    # Calculate employment ratios based on GDP shares
+    manufacturing_ratio = total_manufacturing_gdp / total_industrial_gdp if total_industrial_gdp > 0 else 0
+    resource_ratio = total_resource_gdp / total_industrial_gdp if total_industrial_gdp > 0 else 0
+    other_industry_ratio = max(0, 1 - manufacturing_ratio - resource_ratio)  # Ensure non-negative
+    
+    manufacturing_emp = ind_emp * manufacturing_ratio
+    resource_emp = ind_emp * resource_ratio
+    other_industry_emp = ind_emp * other_industry_ratio
+    
+    # Calculate width proportional to labor force * employment percentage
+    agriculture_width = total_labor_force * (agr_emp / total_labor_force) if total_labor_force > 0 else 0
+    industry_width = total_labor_force * (ind_emp / total_labor_force) if total_labor_force > 0 else 0
+    services_width = total_labor_force * (srv_emp / total_labor_force) if total_labor_force > 0 else 0
+
+    return pd.Series({
         'Country': name,
-        'Agriculture_PC': (df_region['Agricultural (PPP/USD)'].sum()) / total_pop if total_pop > 0 else 0,
-        'Industry_PC': (df_region['Industrial (PPP/USD)'].sum()) / total_pop if total_pop > 0 else 0,
-        'Services_PC': (df_region['Service (PPP/USD)'].sum()) / total_pop if total_pop > 0 else 0,
-        'Agriculture_emp_pct': (agr_emp_total / total_employment * 100) if total_employment > 0 else 0,
-        'Industry_emp_pct': (ind_emp_total / total_employment * 100) if total_employment > 0 else 0,
-        'Services_emp_pct': (srv_emp_total / total_employment * 100) if total_employment > 0 else 0,
-        'Agriculture_Productivity': (df_region['Agricultural (PPP/USD)'].sum()) / agr_emp_total if agr_emp_total > 0 else 0,
-        'Industry_Productivity': (df_region['Industrial (PPP/USD)'].sum()) / ind_emp_total if ind_emp_total > 0 else 0,
-        'Services_Productivity': (df_region['Service (PPP/USD)'].sum()) / srv_emp_total if srv_emp_total > 0 else 0,
-        'Population': total_pop
+        'Agriculture_PC': df_region['Agricultural (PPP/USD)'].sum() / total_labor_force,
+        'Industry_PC': df_region['Industrial (PPP/USD)'].sum() / total_labor_force,
+        'Services_PC': df_region['Service (PPP/USD)'].sum() / total_labor_force,
+        'Agriculture_emp_pct': agr_emp / total_labor_force * 100 if total_labor_force > 0 else 0,
+        'Industry_emp_pct': ind_emp / total_labor_force * 100 if total_labor_force > 0 else 0,
+        'Services_emp_pct': srv_emp / total_labor_force * 100 if total_labor_force > 0 else 0,
+        'Agriculture_Productivity': df_region['Agricultural (PPP/USD)'].sum() / agr_emp if agr_emp > 0 else 0,
+        'Industry_Productivity': df_region['Industrial (PPP/USD)'].sum() / ind_emp if ind_emp > 0 else 0,
+        'Services_Productivity': df_region['Service (PPP/USD)'].sum() / srv_emp if srv_emp > 0 else 0,
+        'Manufacturing_Productivity': total_manufacturing_gdp / manufacturing_emp if manufacturing_emp > 0 else 0,
+        'ResourceExtraction_Productivity': total_resource_gdp / resource_emp if resource_emp > 0 else 0,
+        'OtherIndustry_Productivity': total_other_industry_gdp / other_industry_emp if other_industry_emp > 0 else 0,
+        'LaborForce': total_labor_force,
+        'Agriculture_Width': agriculture_width,
+        'Industry_Width': industry_width,
+        'Services_Width': services_width,
+        'Agriculture_Employment': agr_emp,
+        'Industry_Employment': ind_emp,
+        'Services_Employment': srv_emp,
+        'Manufacturing_Employment': manufacturing_emp,
+        'ResourceExtraction_Employment': resource_emp,
+        'OtherIndustry_Employment': other_industry_emp
     })
-    return agg
 
-# Aggregate defined regions
-aggregated = []
+def aggregate_all_regions(df, regions):
+    aggregated = []
+    for region in regions:
+        aggregated.append(aggregate_region(df[df['Region'] == region['name']], region['name']))
+    aggregated.append(aggregate_region(df[df['Region'] == 'Other'], 'Rest of World'))
+    df_agg = pd.DataFrame(aggregated)
+    df_agg = df_agg[df_agg['LaborForce'] > 0]
+    return df_agg
 
-# Use manual regions
-for region in regions:
-    region_df = df[df['Region'] == region['name']]
-    if len(region_df) > 0:  # Only add if region has countries
-        aggregated.append(aggregate_region(region_df, region['name']))
-
-# Handle "Rest of World" - use countries marked as 'Other'
-rest_of_world_df = df[df['Region'] == 'Other']
-if len(rest_of_world_df) > 0:
-    aggregated.append(aggregate_region(rest_of_world_df, 'Rest of World'))
-
-df_agg = pd.DataFrame(aggregated)
-
-# Remove empty regions (population = 0)
-df_agg = df_agg[df_agg['Population'] > 0]
-
-# --- Calculate bar widths based on employment ---
-# Each sector's width is proportional to its employment percentage
-# Total width is still proportional to population for country comparison
-df_agg['Base_Width'] = df_agg['Population'] / df_agg['Population'].max()
-
-# Calculate sector widths within each country's total width
-df_agg['Agriculture_Width'] = df_agg['Base_Width'] * (df_agg['Agriculture_emp_pct'] / 100)
-df_agg['Industry_Width'] = df_agg['Base_Width'] * (df_agg['Industry_emp_pct'] / 100)
-df_agg['Services_Width'] = df_agg['Base_Width'] * (df_agg['Services_emp_pct'] / 100)
-
-# Ensure widths don't exceed base width due to rounding
-total_sector_width = df_agg['Agriculture_Width'] + df_agg['Industry_Width'] + df_agg['Services_Width']
-scaling_factor = df_agg['Base_Width'] / total_sector_width
-df_agg['Agriculture_Width'] *= scaling_factor
-df_agg['Industry_Width'] *= scaling_factor
-df_agg['Services_Width'] *= scaling_factor
-
-# --- Sort for plotting ---
-df_agg['TotalGDP'] = df_agg[['Agriculture_PC', 'Industry_PC', 'Services_PC']].sum(axis=1)
-df_agg = df_agg.sort_values(by='TotalGDP', ascending=False).reset_index(drop=True)
-
-# --- Plotting colors ---
-colors = {
-    'Agriculture_PC': '#64c080',
-    'Industry_PC': '#6490a6',
-    'Services_PC': '#b04444'
-}
-
-def plot_gdp_employment_stacked(df_final):
-    fig, ax = plt.subplots(figsize=(16, 10))
+def plot_productivity(df_final):    
+    # Sort by GDP per capita (PPP)
+    df_final = df_final.copy()  # Avoid the pandas warning
+    df_final['GDP_per_capita'] = (df_final['Agriculture_PC'] + df_final['Industry_PC'] + df_final['Services_PC'])
+    df_final = df_final.sort_values('GDP_per_capita', ascending=False)
+    
+    fig, ax = plt.subplots(figsize=(16, 16))
+    if not USE_SIMPLIFIED_REGIONS:
+        fig, ax = plt.subplots(figsize=(22, 16))
+    
     fig.patch.set_facecolor('#2a2a2a')
     ax.set_facecolor('#2a2a2a')
 
-    # Calculate the maximum width for each country
-    df_final['Max_Width'] = df_final[['Agriculture_Width', 'Industry_Width', 'Services_Width']].max(axis=1)
+    # Calculate total width (Agriculture + Industry + Services) - industry is combined
+    df_final['Total_Width'] = (
+        df_final['Agriculture_Width'] +
+        df_final['Industry_Width'] +
+        df_final['Services_Width']
+    )
+    
+    # Normalize widths to make them reasonable for plotting
+    max_width = df_final['Total_Width'].max()
+    scale_factor = 1.0 / max_width if max_width > 0 else 1.0
+    
+    df_final['Agriculture_Width'] *= scale_factor
+    df_final['Industry_Width'] *= scale_factor
+    df_final['Services_Width'] *= scale_factor
+    df_final['Total_Width'] *= scale_factor
 
-    # Calculate positions for each country
-    country_positions = np.cumsum([0] + df_final['Max_Width'].tolist()[:-1])
+    # Enforce minimum width after scaling
+    min_width = 0.02
+    df_final['Agriculture_Width'] = df_final['Agriculture_Width'].clip(lower=min_width)
+    df_final['Industry_Width']    = df_final['Industry_Width'].clip(lower=min_width)
+    df_final['Services_Width']    = df_final['Services_Width'].clip(lower=min_width)
+    
+    df_final['Total_Width']       = (
+        df_final['Agriculture_Width'] +
+        df_final['Industry_Width'] +
+        df_final['Services_Width']
+    )
 
-    # Plot each sector as stacked bars with widths proportional to employment
+    gap = 0.03
+    country_positions = np.cumsum([0] + (df_final['Total_Width'] + gap).tolist()[:-1])
+
+    linewidth = 2
+    # Plot bars
     for i, (_, country) in enumerate(df_final.iterrows()):
         country_start = country_positions[i]
-        max_width = country['Max_Width']
-
-        # Calculate the offset to center each bar
-        def get_offset(sector_width):
-            return (max_width - sector_width) / 2
-
-        # Plot services bar at the bottom
-        if country['Services_Width'] > 0:
-            offset = get_offset(country['Services_Width'])
-            ax.bar(country_start + offset, country['Services_PC'],
-                  width=country['Services_Width'],
-                  color=colors['Services_PC'],
-                  edgecolor='#2a2a2a', linewidth=0.5,
-                  align='edge', label='Services' if i == 0 else "")
-
-        # Plot industry bar on top of services bar
-        if country['Industry_Width'] > 0:
-            offset = get_offset(country['Industry_Width'])
-            ax.bar(country_start + offset, country['Industry_PC'],
-                  width=country['Industry_Width'],
-                  color=colors['Industry_PC'],
-                  edgecolor='#2a2a2a', linewidth=0.5,
-                  align='edge', bottom=country['Services_PC'],
-                  label='Industry' if i == 0 else "")
-
-        # Plot agriculture bar on top of industry bar
+        # Agriculture
         if country['Agriculture_Width'] > 0:
-            offset = get_offset(country['Agriculture_Width'])
-            ax.bar(country_start + offset, country['Agriculture_PC'],
-                  width=country['Agriculture_Width'],
-                  color=colors['Agriculture_PC'],
-                  edgecolor='#2a2a2a', linewidth=0.5,
-                  align='edge', bottom=country['Services_PC'] + country['Industry_PC'],
-                  label='Agriculture' if i == 0 else "")
+            ax.bar(
+                country_start, country['Agriculture_Productivity'],
+                width=country['Agriculture_Width'],
+                color=COLORS['Agriculture_PC'],
+                edgecolor='#2a2a2a', linewidth=linewidth,
+                align='edge', label='Agriculture' if i == 0 else ""
+            )
+            country_start += country['Agriculture_Width']
 
-    # Set country labels at center of each country's total width
-    country_centers = country_positions + df_final['Max_Width'] / 2
+        # Industry (stacked: Manufacturing, Resource Extraction, Other Industry)
+
+        # Calculate the employment ratios to determine stacking proportions
+        total_ind_employment = country['Industry_Employment'] if country['Industry_Employment'] > 0 else 1
+        manufacturing_employment = country.get('Manufacturing_Employment', total_ind_employment * 0.33)
+        resource_employment = country.get('ResourceExtraction_Employment', total_ind_employment * 0.33)
+        other_employment = country.get('OtherIndustry_Employment', total_ind_employment * 0.34)
+        
+        manufacturing_ratio = manufacturing_employment / total_ind_employment
+        resource_ratio = resource_employment / total_ind_employment
+        other_ratio = other_employment / total_ind_employment
+        
+        # Get productivities
+        manufacturing_productivity = country.get('Manufacturing_Productivity', country['Industry_Productivity'])
+        resource_productivity = country.get('ResourceExtraction_Productivity', country['Industry_Productivity'])
+        other_productivity = country.get('OtherIndustry_Productivity', country['Industry_Productivity'])
+        current_bottom = 0
+        
+        # Industry
+        resource_height = resource_productivity * resource_ratio
+        ax.bar(
+            country_start, resource_height,
+            width=country['Industry_Width'],
+            bottom=current_bottom,
+            color=COLORS['ResourceExtraction_PC'],
+            edgecolor='#2a2a2a', linewidth=linewidth,
+            align='edge', label='Resource Extraction' if i == 0 else ""
+        )
+        current_bottom += resource_height
+        
+        other_height = other_productivity * other_ratio
+        ax.bar(
+            country_start, other_height,
+            width=country['Industry_Width'],
+            bottom=current_bottom,
+            color=COLORS['OtherIndustry_PC'],
+            edgecolor='#2a2a2a', linewidth=linewidth,
+            align='edge', label='Other Industry' if i == 0 else ""
+        )
+        current_bottom += other_height
+            
+        manufacturing_height = manufacturing_productivity * manufacturing_ratio
+        ax.bar(
+            country_start, manufacturing_height,
+            width=country['Industry_Width'],
+            bottom=current_bottom,
+            color=COLORS['Manufacturing_PC'],
+            edgecolor='#2a2a2a', linewidth=linewidth,
+            align='edge', label='Manufacturing' if i == 0 else ""
+        )
+        
+        country_start += country['Industry_Width']
+
+        # Services
+        ax.bar(
+            country_start, country['Services_Productivity'],
+            width=country['Services_Width'],
+            color=COLORS['Services_PC'],
+            edgecolor='#2a2a2a', linewidth=linewidth,
+            align='edge', label='Services' if i == 0 else ""
+        )
+
+    # X-ticks in the middle of each country's total width
+    country_centers = country_positions + df_final['Total_Width'] / 2
     ax.set_xticks(country_centers)
-    ax.set_xticklabels(df_final['Country'], rotation=-25, ha='left', fontsize=10, color='white')
+    ax.set_xticklabels(df_final['Country'])
+    # ax.set_xticklabels(df_final['Country'], rotation=-30, ha='left')
 
-    ax.set_xlabel('Population (total width) × Employment % (sector width)', color='white', fontsize=14)
-    ax.set_ylabel(f'GDP per Capita by Sector ({gdp_label}, international $)', color='white', fontsize=14)
-    ax.set_title(f'GDP per Capita & Employment by Sector ({gdp_label} GDP, {data_year})', color='white', fontsize=17)
+    ax.set_xlabel('Labor Force', color='white', fontsize=24)
+    ax.set_ylabel('GDP per Employed Person (international $)', color='white', fontsize=24)
+    ax.set_title(f'GDP by Sector ({GDP_LABEL}, {DATA_YEAR})', color='white', fontsize=30)
 
     ax.yaxis.grid(True, color='white', alpha=0.2)
     ax.set_axisbelow(True)
     ax.tick_params(axis='y', colors='white')
     ax.tick_params(axis='x', colors='white')
+    ax.tick_params(labelsize=13)
 
-    total_width = country_positions[-1] + df_final['Max_Width'].iloc[-1]
+    total_width = country_positions[-1] + df_final['Total_Width'].iloc[-1] if len(country_positions) > 0 else 1
     ax.set_xlim(left=0, right=total_width)
 
     legend = ax.legend(
         title='Sector',
-        loc='upper right',
+        loc='center right',
         facecolor='#2a2a2a',
         edgecolor='white',
         frameon=True,
-        fontsize=12,
-        title_fontsize=13
+        fontsize=20,
+        title_fontsize=18
     )
     plt.setp(legend.get_texts(), color='white')
     plt.setp(legend.get_title(), color='white')
 
     # Add explanatory text
     ax.text(
-        1.0, -0.15,
-        f"Source: World Bank API (GDP & Employment data, {data_year})\n" +
-        f"Bar width ∝ Population × Employment %. Bar height = GDP per capita by sector.\n" +
-        f"Visualization by u/MadoctheHadoc",
-        fontsize=9,
+        1.0, -0.03,
+        f"Source: World Bank API (GDP & Employment data, {DATA_YEAR})\n" +
+        "Visualization by MadoctheHadoc",
+        fontsize=14,
         color='white',
         ha='right',
         va='top',
         transform=ax.transAxes
     )
-
+    
     for spine in ax.spines.values():
         spine.set_visible(False)
 
     plt.tight_layout()
-    plt.savefig("gdp_employment_by_sector_scaled.png", dpi=300, bbox_inches='tight')
+    plt.savefig(f"visualizations/SectorProductivity{DATA_YEAR}.png", dpi=300, bbox_inches='tight')
     plt.show()
 
-    # Print productivity insights
-    print(f"\n=== PRODUCTIVITY INSIGHTS ({gdp_label} GDP per worker) ===")
-    for _, country in df_final.iterrows():
-        if country['Population'] > 0:
-            print(f"\n{country['Country']}:")
-            print(f"  Agriculture: {country['Agriculture_Productivity']:,.0f} $/worker ({country['Agriculture_emp_pct']:.1f}% employment)")
-            print(f"  Industry:    {country['Industry_Productivity']:,.0f} $/worker ({country['Industry_emp_pct']:.1f}% employment)")
-            print(f"  Services:    {country['Services_Productivity']:,.0f} $/worker ({country['Services_emp_pct']:.1f}% employment)")
-
-def plot_productivity_stacked(df_final):
-    fig, ax = plt.subplots(figsize=(16, 10))
-    fig.patch.set_facecolor('#2a2a2a')
-    ax.set_facecolor('#2a2a2a')
-
-    # Calculate the maximum width for each country
-    df_final['Max_Width'] = df_final[['Agriculture_Width', 'Industry_Width', 'Services_Width']].max(axis=1)
-
-    # Calculate positions for each country
-    country_positions = np.cumsum([0] + df_final['Max_Width'].tolist()[:-1])
-
-    # Plot each sector as stacked bars with widths proportional to employment
-    for i, (_, country) in enumerate(df_final.iterrows()):
-        country_start = country_positions[i]
-        max_width = country['Max_Width']
-
-        # Calculate the offset to center each bar
-        def get_offset(sector_width):
-            return (max_width - sector_width) / 2
-
-        # Plot agriculture bar on top of industry bar
-        if country['Agriculture_Width'] > 0:
-            offset = get_offset(country['Agriculture_Width'])
-            ax.bar(country_start + offset, country['Agriculture_Productivity'],
-                  width=country['Agriculture_Width'],
-                  color=colors['Agriculture_PC'],
-                  edgecolor='#2a2a2a', linewidth=0.2,
-                  align='edge', bottom=country['Services_Productivity'] + country['Industry_Productivity'],
-                  label='Agriculture' if i == 0 else "")
-
-        # Plot industry bar on top of services bar
-        if country['Industry_Width'] > 0:
-            offset = get_offset(country['Industry_Width'])
-            ax.bar(country_start + offset, country['Industry_Productivity'],
-                  width=country['Industry_Width'],
-                  color=colors['Industry_PC'],
-                  edgecolor='#2a2a2a', linewidth=0.2,
-                  align='edge', bottom=country['Services_Productivity'],
-                  label='Industry' if i == 0 else "")
-
-        # Plot services bar at the bottom
-        if country['Services_Width'] > 0:
-            offset = get_offset(country['Services_Width'])
-            ax.bar(country_start + offset, country['Services_Productivity'],
-                  width=country['Services_Width'],
-                  color=colors['Services_PC'],
-                  edgecolor='#2a2a2a', linewidth=0.2,
-                  align='edge', label='Services' if i == 0 else "")
-
-    # Set country labels at center of each country's total width
-    country_centers = country_positions + df_final['Max_Width'] / 2
-    ax.set_xticks(country_centers)
-    ax.set_xticklabels(df_final['Country'], rotation=-25, ha='left', fontsize=10, color='white')
-
-    ax.set_xlabel('Population (total width) × Employment % (sector width)', color='white', fontsize=14)
-    ax.set_ylabel('Productivity by Sector (international $)', color='white', fontsize=14)
-    ax.set_title(f'Productivity by Sector ({gdp_label} GDP, {data_year})', color='white', fontsize=17)
-
-    ax.yaxis.grid(True, color='white', alpha=0.2)
-    ax.set_axisbelow(True)
-    ax.tick_params(axis='y', colors='white')
-    ax.tick_params(axis='x', colors='white')
-
-    total_width = country_positions[-1] + df_final['Max_Width'].iloc[-1]
-    ax.set_xlim(left=0, right=total_width)
-
-    legend = ax.legend(
-        title='Sector',
-        loc='upper right',
-        facecolor='#2a2a2a',
-        edgecolor='white',
-        frameon=True,
-        fontsize=12,
-        title_fontsize=13
-    )
-    plt.setp(legend.get_texts(), color='white')
-    plt.setp(legend.get_title(), color='white')
-
-    # Add explanatory text
-    ax.text(
-        1.0, -0.15,
-        f"Source: World Bank API (GDP & Employment data, {data_year})\n" +
-        f"Bar width ∝ Population × Employment %. Bar height = Productivity by sector.\n" +
-        f"Visualization by u/MadoctheHadoc",
-        fontsize=9,
-        color='white',
-        ha='right',
-        va='top',
-        transform=ax.transAxes
-    )
-
-    for spine in ax.spines.values():
-        spine.set_visible(False)
-
-    plt.tight_layout()
-    plt.savefig("productivity_by_sector_scaled.png", dpi=300, bbox_inches='tight')
-    plt.show()
-
-    # Print productivity insights
-    print(f"\n=== PRODUCTIVITY INSIGHTS ({gdp_label} GDP per worker) ===")
-    for _, country in df_final.iterrows():
-        if country['Population'] > 0:
-            print(f"\n{country['Country']}:")
-            print(f"  Agriculture: {country['Agriculture_Productivity']:,.0f} $/worker ({country['Agriculture_emp_pct']:.1f}% employment)")
-            print(f"  Industry:    {country['Industry_Productivity']:,.0f} $/worker ({country['Industry_emp_pct']:.1f}% employment)")
-            print(f"  Services:    {country['Services_Productivity']:,.0f} $/worker ({country['Services_emp_pct']:.1f}% employment)")
-
-
-# --- Plot ---
-plot_productivity_stacked(df_agg)
+# ==================== MAIN ====================
+if __name__ == "__main__":
+    indicators = GDP_INDICATORS_PPP if USE_PPP_ADJUSTED else GDP_INDICATORS_NOMINAL
+    regions = SIMPLIFIED_REGIONS if USE_SIMPLIFIED_REGIONS else REGIONS
+    
+    print('Fetching...')
+    df = fetch_world_bank_data(indicators, DATA_YEAR)
+    df = clean_data(df)
+    
+    print('Aggregating...')
+    df = calculate_gdp_metrics(df)
+    df = assign_regions(df, regions)
+    df_agg = aggregate_all_regions(df, regions)
+    
+    print('Rendering...')
+    plot_productivity(df_agg)
