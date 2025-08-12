@@ -3,54 +3,61 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
-# Define the file path relative to the script's location
-script_dir = os.path.dirname(__file__)
-energy_file_path = os.path.join(script_dir, '../data/EnergyGeneration.txt')
-population_file_path = os.path.join(script_dir, '../data/CountryPopulation.txt')
+# =========================
+# ======== CONSTANTS ======
+# =========================
+SCRIPT_DIR = os.path.dirname(__file__)
+ENERGY_FILE_PATH = os.path.join(SCRIPT_DIR, '../data/EnergyGeneration.txt')
+POPULATION_FILE_PATH = os.path.join(SCRIPT_DIR, '../data/CountryPopulation.txt')
 
-# Read the energy data into a dataframe
-df = pd.read_csv(energy_file_path, sep='\t')
+ENERGY_COLUMNS = [
+    'Total', 'Coal', 'Gas', 'Hydro', 'Nuclear', 'Wind', 'Solar',
+    'Oil', 'Biomass', 'Geothermal'
+]
 
-# Clean up location names
-df['Location'] = df['Location'].str.strip()
+FOSSIL_FUELS = ['Gas', 'Coal', 'Oil']
 
-# Read and clean population data
-df_population = pd.read_csv(population_file_path, sep='\t')
-df_population['Country'] = df_population['Country'].str.strip()
-df_population['Country'] = df_population['Country'].str.replace(r'\s*\([^)]*\)', '', regex=True)
-df_population['Country'] = df_population['Country'].str.replace(r'\s*\[[^\]]*\]', '', regex=True)
+ORDERED_COLUMNS = [
+    'Hydro', 'Solar', 'Wind', 'Nuclear', 'Biomass', 'Geothermal',
+    'Gas', 'Oil', 'Coal'
+]
 
-# Extract and rename population column
-df_population_clean = df_population[['Country', 'Population2025']].copy()
-df_population_clean.rename(columns={
-    'Country': 'Location',
-    'Population2025': 'Population'
-}, inplace=True)
+COLORS = {
+    'Hydro': "#8d94cb",
+    'Solar': "#ffd92f",
+    'Wind': "#66c2b9",
+    'Nuclear': "#66d854",
+    'Biomass': "#e78ac3",
+    'Geothermal': "#b08dcb",
+    'Gas': "#e0754a",
+    'Oil': "#ac341f",
+    'Coal': "#570F0F"
+}
 
-# Merge energy data with population
-df = df.merge(df_population_clean, on='Location', how='left')
+ANNO_COLOR = '#888888'
 
-# Convert Population column to numeric
-df['Population'] = df['Population'].astype(str).str.replace(',', '')
-df['Population'] = pd.to_numeric(df['Population'], errors='coerce')
+BACKGROUND = '#2a2a2a'
 
-# Drop countries with missing or zero population
-df = df.dropna(subset=['Population'])
-df = df[df['Population'] > 0].copy()
+# Flags
+USE_SIMPLIFIED_REGIONS = False
+ANNOTATE_DESKTOP = False
+ANNOTATE_MOBILE = False
+GROUP_REMAINDER = False
 
-# Convert energy columns to numeric
-energy_columns = ['Total', 'Coal', 'Gas', 'Hydro', 'Nuclear', 'Wind', 'Solar', 'Oil', 'Biomass', 'Geothermal']
-for col in energy_columns:
-    df[col] = pd.to_numeric(df[col].astype(str).str.replace(',', ''), errors='coerce').fillna(0)
-
-# Define countries to show individually
-selected_countries = ['United States', 'China', 'India']
-
-# Filter out the 'World' row
-df_data = df[df['Location'] != 'World'].copy()
-
-# Define regions and member countries
-simplified_regions = [
+# Regions definitions (simplified and full) — omitted here for brevity
+SIMPLIFIED_REGIONS = [
+    {
+        'name': 'USA',
+        'countries': [
+            'United States'
+        ]
+    },    
+    {
+        'name': 'China',
+        'countries': [
+            'China'
+        ]
+    },
     {
         'name': 'Europe (ex. Russia)',
         'countries': [
@@ -89,36 +96,61 @@ simplified_regions = [
             'Brunei', 'Cambodia', 'Indonesia', 'Laos', 'Malaysia', 'Myanmar',
             'Philippines', 'Singapore', 'Thailand', 'Vietnam',
         ]
+    },
+    {
+        'name': 'South Asia',
+        'countries': [
+            'India', 'Pakistan', 'Nepal', 'Bangladesh', 'Sri Lanka', 'Bhutan', 'Maldives'
+        ]
     }
 ]
 
-regions = [
+REGIONS = [
     {
-        'name': 'EU',
+        'name': 'USA',
+        'countries': [
+            'United States'
+        ]
+    },    
+    {
+        'name': 'China',
+        'countries': [
+            'China'
+        ]
+    },
+    {
+        'name': 'EEA',
         'countries': [
             'Austria', 'Belgium', 'Bulgaria', 'Croatia', 'Cyprus', 'Czech Republic', 'Denmark',
             'Estonia', 'Finland', 'France', 'Germany', 'Greece', 'Hungary', 'Ireland', 'Italy',
             'Latvia', 'Lithuania', 'Luxembourg', 'Malta', 'Netherlands', 'Poland', 'Portugal',
-            'Romania', 'Slovakia', 'Slovenia', 'Spain', 'Sweden'
+            'Romania', 'Slovakia', 'Slovenia', 'Spain', 'Sweden', 'Norway', 'Switzerland',
+            'Liechtenstein', 'Iceland'
         ]
     },
     {
         'name': 'Other Europe',
         'countries': [
             'Russia', 'Ukraine', 'Belarus', 'Armenia', 'Georgia', 'Azerbaijan', 'Bosnia and Herzegovina', 'Serbia', 'Montenegro',
-            'Albania', 'Kazakhstan', 'Kyrgyzstan', 'Tajikistan', 'Turkmenistan', 'Uzbekistan'
+            'Albania'
         ]
     },
     {
-        'name': 'Other Asia',
+        'name': 'ASEAN',
         'countries': [
             'Brunei', 'Cambodia', 'Indonesia', 'Laos', 'Malaysia', 'Myanmar',
-            'Philippines', 'Singapore', 'Thailand', 'Vietnam', 'Bangladesh', 'Pakistan', 'Nepal', 'Mongolia', 'North Korea'
+            'Philippines', 'Singapore', 'Thailand', 'Vietnam'
         ]
     },
     {
         'name': 'Developed Asia',
         'countries': ['Japan', 'South Korea', 'Taiwan', 'Hong Kong', 'Macau']
+    },
+    {
+        'name': 'South Asia',
+        'countries': [
+            'India', 'Pakistan', 'Nepal', 'Bangladesh', 'Sri Lanka', 'Bhutan', 'Maldives'
+        ]
     },
     {
         'name': 'Africa',
@@ -149,125 +181,209 @@ regions = [
     ]
     },
     {
-    'name': 'Other Developed',
-    'countries': [
-        'Canada', 'Australia', 'New Zealand', 'United Kingdom', 'Norway', 'Switzerland', 'Liechtenstein'
-    ]
+        'name': 'CANZUK',
+        'countries': [
+            'Canada', 'Australia', 'New Zealand', 'United Kingdom'
+        ]
     }
 ]
 
-regions = simplified_regions
-# Tag regions
-df_data['Region'] = 'Other'
-for region in regions:
-    df_data.loc[df_data['Location'].isin(region['countries']), 'Region'] = region['name']
+EUROPEAN_REGIONS = [
+    {
+        'name': 'Scandinavia',
+        'countries': [
+            'Denmark', 'Finland', 'Norway', 'Iceland', 'Sweden'
+        ]
+    },
+    {
+        'name': 'Iberia',
+        'countries': [
+            'Spain', 'Portugal'
+        ]
+    },
+    {
+        'name': 'Union State',
+        'countries': [
+            'Russia', 'Belarus'
+        ]
+    },
+    {
+        'name': 'Caucasus',
+        'countries': [
+            'Armenia', 'Azerbaijan', 'Georgia'
+        ]
+    },
+    {
+        'name': 'Baltics',
+        'countries': [
+            'Lithuania', 'Latvia', 'Estonia'
+        ]
+    },
+    {
+        'name': 'British Isles',
+        'countries': [
+            'United Kingdom', 'Ireland'
+        ]
+    },
+    {
+        'name': 'Benelux',
+        'countries': [
+            'Netherlands', 'Belgium', 'Luxembourg'
+        ]
+    },
+    {
+        'name': 'Alps',
+        'countries': [
+            'Switzerland', 'Austria', 'Liechtenstein'
+        ]
+    },
+    {
+        'name': 'South Slavs',
+        'countries': [
+            'Slovenia', 'Croatia', 'Serbia', 'Bosnia and Herzegovina', 'Bulgaria', 'North Macedonia', 'Montenegro', 'Albania'
+        ]
+    },
+    {
+        'name': 'Italy',
+        'countries': [
+            'Italy', 'Malta'
+        ]
+    },
+    {
+        'name': 'Greece',
+        'countries': [
+            'Greece', 'Cyprus'
+        ]
+    },
+    {
+        'name': 'Romania',
+        'countries': [
+            'Romania', 'Moldova'
+        ]
+    },
+]
+# =========================
+# ======== FUNCTIONS ======
+# =========================
 
-# Track selected country list update
-flat_region_countries = [country for r in regions for country in r['countries']]
-selected_countries = [c for c in selected_countries if c not in flat_region_countries]
+def load_data():
+    df_energy = pd.read_csv(ENERGY_FILE_PATH, sep='\t')
+    df_energy['Location'] = df_energy['Location'].str.strip()
 
-# Remove region countries from individual display
-df_data_filtered = df_data[~df_data['Location'].isin(flat_region_countries)].copy()
+    df_population = pd.read_csv(POPULATION_FILE_PATH, sep='\t')
+    df_population['Country'] = (
+        df_population['Country']
+        .str.strip()
+        .str.replace(r'\s*\([^)]*\)', '', regex=True)
+        .str.replace(r'\s*\[[^\]]*\]', '', regex=True)
+    )
 
-# Function to aggregate regions
+    df_population_clean = df_population[['Country', 'Population2025']].copy()
+    df_population_clean.rename(columns={
+        'Country': 'Location',
+        'Population2025': 'Population'
+    }, inplace=True)
+
+    return df_energy, df_population_clean
+
+
+def merge_data(df_energy, df_population):
+    df = df_energy.merge(df_population, on='Location', how='left')
+
+    # Clean population
+    df['Population'] = (
+        df['Population'].astype(str).str.replace(',', '')
+    )
+    df['Population'] = pd.to_numeric(df['Population'], errors='coerce')
+
+    df = df.dropna(subset=['Population'])
+    df = df[df['Population'] > 0].copy()
+
+    # Convert energy columns
+    for col in ENERGY_COLUMNS:
+        df[col] = pd.to_numeric(
+            df[col].astype(str).str.replace(',', ''),
+            errors='coerce'
+        ).fillna(0)
+
+    return df
+
+
+def tag_regions(df, regions):
+    df['Region'] = 'Other'
+    for region in regions:
+        df.loc[df['Location'].isin(region['countries']), 'Region'] = region['name']
+    return df
+
+
 def aggregate_region(df_region, name):
-    df_sum = df_region[energy_columns].sum()
+    df_sum = df_region[ENERGY_COLUMNS].sum()
     population_sum = df_region['Population'].sum()
     return pd.DataFrame({
         'Location': [name],
-        'Total': [df_sum['Total']],
-        'Coal': [df_sum['Coal']],
-        'Gas': [df_sum['Gas']],
-        'Hydro': [df_sum['Hydro']],
-        'Nuclear': [df_sum['Nuclear']],
-        'Wind': [df_sum['Wind']],
-        'Solar': [df_sum['Solar']],
-        'Oil': [df_sum['Oil']],
-        'Biomass': [df_sum['Biomass']],
-        'Geothermal': [df_sum['Geothermal']],
+        **{col: [df_sum[col]] for col in ENERGY_COLUMNS},
         'Population': [population_sum]
     })
 
-# Create aggregated region rows
-aggregated_regions = []
-for region in regions:
-    df_region = df_data[df_data['Region'] == region['name']]
-    if not df_region.empty:
-        aggregated_regions.append(aggregate_region(df_region, region['name']))
 
-# Re-separate selected and other
-df_selected = df_data_filtered[df_data_filtered['Location'].isin(selected_countries)].copy()
-df_other = df_data_filtered[~df_data_filtered['Location'].isin(selected_countries)].copy()
+def prepare_final_dataframe(df, regions):
+    flat_region_countries = [c for r in regions for c in r['countries']]
+    df_filtered = df[~df['Location'].isin(flat_region_countries)].copy()
 
-# "Other" region aggregation
-df_other_sum = df_other[energy_columns].sum()
-total_other_population = df_other['Population'].sum()
-df_other_df = pd.DataFrame({
-    'Location': ['Rest of World'],
-    'Total': [df_other_sum['Total']],
-    'Coal': [df_other_sum['Coal']],
-    'Gas': [df_other_sum['Gas']],
-    'Hydro': [df_other_sum['Hydro']],
-    'Nuclear': [df_other_sum['Nuclear']],
-    'Wind': [df_other_sum['Wind']],
-    'Solar': [df_other_sum['Solar']],
-    'Oil': [df_other_sum['Oil']],
-    'Biomass': [df_other_sum['Biomass']],
-    'Geothermal': [df_other_sum['Geothermal']],
-    'Population': [total_other_population]
-})
+    aggregated_regions = []
+    for region in regions:
+        df_region = df[df['Region'] == region['name']]
+        if not df_region.empty:
+            aggregated_regions.append(aggregate_region(df_region, region['name']))
 
-# Final DataFrame: selected + regions + other
-df_final = pd.concat([df_selected] + aggregated_regions + [df_other_df], ignore_index=True)
+    if GROUP_REMAINDER:
+        if not df_filtered.empty:
+            df_other_sum = df_filtered[ENERGY_COLUMNS].sum()
+            total_other_population = df_filtered['Population'].sum()
+            df_other_df = pd.DataFrame({
+                'Location': ['Rest of World'],
+                **{col: [df_other_sum[col]] for col in ENERGY_COLUMNS},
+                'Population': [total_other_population]
+            })
+            aggregated_regions.append(df_other_df)
+        return pd.concat(aggregated_regions, ignore_index=True)
+
+    else:
+        # If not grouping, append the individual leftover countries as they are
+        if not df_filtered.empty:
+            aggregated_regions.append(df_filtered)
+        return pd.concat(aggregated_regions, ignore_index=True)
 
 
-# Normalize energy values by population (TWh per person)
-for col in energy_columns:
-    df_final[col] = df_final[col] / df_final['Population']
+def normalize_data(df):
+    for col in ENERGY_COLUMNS:
+        df[col] = df[col] / df['Population']
+    df['Width'] = df['Population'] / df['Population'].max()
+    return df
 
-# Normalize population to use for bar width (scaling for visibility)
-max_width = 1.0
-df_final['Width'] = df_final['Population'] / df_final['Population'].max() * max_width
 
-# Plot
-# Sort by Total per capita energy generation (descending)s
-df_final = df_final.sort_values(by='Total', ascending=False).reset_index(drop=True)
-
-# Define new energy order and pastel color palette
-ordered_columns = ['Hydro', 'Wind', 'Solar', 'Geothermal', 'Biomass', 'Nuclear', 'Gas', 'Oil', 'Coal']
-pastel_colors = {
-    'Hydro':     '#6470c0',
-    'Wind':      '#6480b3',
-    'Solar':     '#6490a6',
-    'Geothermal':'#64a09a',
-    'Biomass':   '#64af8e',
-    'Nuclear':   '#64c080',
-    'Gas': "#d08661",
-    'Oil': "#bd6b57",
-    'Coal': "#b04444"
-}
-
-def plot_desktop():
+def plot_desktop(df_final, annotate):
     # Plot
     fig, ax = plt.subplots(figsize=(14, 8))
-    fig.patch.set_facecolor('#2a2a2a')  # Dark background
-    ax.set_facecolor('#2a2a2a')
+    fig.patch.set_facecolor(BACKGROUND)
+    ax.set_facecolor(BACKGROUND)
 
     # Compute left positions based on widths
     left_positions = np.cumsum([0] + df_final['Width'].tolist()[:-1])
 
     # Draw stacked bars
     bottom = np.zeros(len(df_final))
-    for col in ordered_columns:
-        ax.bar(left_positions, df_final[col],
+    for col in ORDERED_COLUMNS:
+        lw = 1.3 if col in FOSSIL_FUELS else 1.0
+        ax.bar(left_positions, df_final[col] * 1e6,  # convert TWh to MWh
                width=df_final['Width'], bottom=bottom,
-               label=col, color=pastel_colors[col], align='edge',
-               edgecolor='black', linewidth=0.0)
-        bottom += df_final[col].values
+               label=col, color=COLORS[col], align='edge',
+               edgecolor='black', linewidth=lw)
+        bottom += (df_final[col] * 1e6).values
 
     # Set x-axis labels below bars
     ax.set_xticks(left_positions + df_final['Width'] / 2)
-    ax.set_xticklabels(df_final['Location'], rotation=-25, ha='left', fontsize=10, color='white')
+    ax.set_xticklabels(df_final['Location'], rotation=-27, ha='left', fontsize=10, color='white')
 
     # Add y-axis grid lines
     ax.yaxis.grid(True, color='white', alpha=0.2)
@@ -275,8 +391,19 @@ def plot_desktop():
 
     # Axis and label styling
     ax.set_xlabel('Population 2025', color='white', fontsize=16)
-    ax.set_ylabel('Per Capita Electricity Generation (TWh per person) in 2024', color='white', fontsize=16)
-    ax.set_title('Electricity Generation by Population and Source', color='white', fontsize=19)
+    ax.set_ylabel(
+        'Electricity Generation per Capita\n(MWh/person, 2024)',
+        color='white',
+        fontsize=16
+    )
+
+    ax.set_title(
+        'Electricity Generation by Population and Source',
+        color='white',
+        fontsize=30,
+        pad=0,
+        y=0.93
+    )
 
     # White y-ticks
     ax.tick_params(axis='y', colors='white')
@@ -292,8 +419,8 @@ def plot_desktop():
     legend = ax.legend(
         handles[::-1], labels[::-1],  # reversed order
         title="Generation Source",
-        loc='upper right',
-        facecolor='#2a2a2a',
+        loc='center right',
+        facecolor=BACKGROUND,
         edgecolor='white',
         frameon=True,
         fontsize=12,         # Legend text size
@@ -305,24 +432,82 @@ def plot_desktop():
     # Add source label in bottom-right corner
     ax.text(
         1.0, -0.12,
-        "Sources: Ember Energy and Our World in Data\n By u/MadoctheHadoc",
+        "Sources: Ember Energy (electricity) and Our World in Data (population)\n By MadoctheHadoc",
         fontsize=9,
         color='white',
         ha='right',
         va='top',
         transform=ax.transAxes
     )
+    
+    if (annotate):
+        # Get index positions for each location
+        china_idx = df_final.index[df_final['Location'] == 'China'][0]
+        middle_east_idx = df_final.index[df_final['Location'] == 'Middle East'][0]
+        south_asia_idx = df_final.index[df_final['Location'] == 'South Asia'][0]
+        asia_idx = df_final.index[df_final['Location'] == 'Developed Asia'][0]
+        
+        # Annotation: China
+        ax.annotate(
+            "China is so big that it generates the most wind,\nsolar, hydro and coal power in the world!",
+            xy=(left_positions[china_idx] + df_final['Width'].iloc[china_idx] / 2,
+                bottom[china_idx]),  # arrow target
+            xytext=(0.5, 8.7),  # text position
+            textcoords='data',
+            arrowprops=dict(arrowstyle='->', color=ANNO_COLOR),
+            color=ANNO_COLOR,
+            fontsize=10,
+            ha='left'
+        )
+        
+        # Annotation: Japan and Korea
+        ax.annotate(
+            "Japan and South Korea lag behind the rest of\nthe developed world in renewable roll out",
+            xy=(left_positions[asia_idx] + df_final['Width'].iloc[asia_idx] / 2,
+                bottom[asia_idx]),  # arrow target
+            xytext=(0.3, 10.7),  # text position
+            textcoords='data',
+            arrowprops=dict(arrowstyle='->', color=ANNO_COLOR),
+            color=ANNO_COLOR,
+            fontsize=10,
+            ha='left'
+        )
 
+        # Annotation: Developing world
+        ax.annotate(
+            "Per capita generation is very low across\nthe developing world and fossil fuels dominate",
+            xy=(left_positions[south_asia_idx] + df_final['Width'].iloc[south_asia_idx] / 2,
+                bottom[south_asia_idx]),
+            xytext=(2.8, 2.7),  # text position
+            textcoords='data',
+            arrowprops=dict(arrowstyle='->', color=ANNO_COLOR),
+            color=ANNO_COLOR,
+            fontsize=10,
+            ha='left'
+        )
+        
+        # Annotation: Middle East
+        ax.annotate(
+            "The Middle East is the only region to use\nsignificant amounts of oil-generated electricity",
+            xy=(left_positions[middle_east_idx] + df_final['Width'].iloc[middle_east_idx] / 2,
+                bottom[middle_east_idx]),
+            xytext=(1.6, 6.7),  # text position
+            textcoords='data',
+            arrowprops=dict(arrowstyle='->', color=ANNO_COLOR),
+            color=ANNO_COLOR,
+            fontsize=10,
+            ha='left'
+        )
 
     # Remove black outline (spines)
     for spine in ax.spines.values():
         spine.set_visible(False)
 
     plt.tight_layout()
-    plt.savefig("desktop_chart.png", dpi=300, bbox_inches='tight')
+    plt.savefig("visualizations/ElectricityGenerationDesktop.png", dpi=300, bbox_inches='tight')
     plt.show()
 
-def plot_mobile():
+def plot_mobile(df_final, annotate):
     abbreviations = {
         'United States': 'USA',
         'Europe (ex. Russia)': 'Europe',
@@ -331,20 +516,23 @@ def plot_mobile():
     df_final['Location'] = df_final['Location'].replace(abbreviations)
     # Plot with portrait layout for mobile
     fig, ax = plt.subplots(figsize=(12, 12))
-    fig.patch.set_facecolor('#2a2a2a')  # Dark background
-    ax.set_facecolor('#2a2a2a')
+    fig.patch.set_facecolor(BACKGROUND)  # Dark background
+    ax.set_facecolor(BACKGROUND)
 
     # Compute left positions based on widths
     left_positions = np.cumsum([0] + df_final['Width'].tolist()[:-1])
 
+    fossil_fuels = ['Gas', 'Coal', 'Oil']
     # Draw stacked bars
     bottom = np.zeros(len(df_final))
-    for col in ordered_columns:
-        ax.bar(left_positions, df_final[col],
+    for col in ORDERED_COLUMNS:
+        lw = 1.3 if col in fossil_fuels else 1.0
+        ax.bar(left_positions, df_final[col] * 1e6,  # convert TWh to MWh
                width=df_final['Width'], bottom=bottom,
-               label=col, color=pastel_colors[col], align='edge',
-               edgecolor='black', linewidth=0.0)
-        bottom += df_final[col].values
+               label=col, color=COLORS[col], align='edge',
+               edgecolor='black', linewidth=lw)
+        bottom += (df_final[col] * 1e6).values
+
 
     # Set x-axis labels below bars
     ax.set_xticks(left_positions + df_final['Width'] / 2)
@@ -356,12 +544,19 @@ def plot_mobile():
 
     # Axis and label styling (larger for mobile readability)
     ax.set_xlabel('Population (2025)', color='white', fontsize=18, labelpad=10)
-    ax.set_ylabel('Electricity Generation per Capita\n(TWh/person, 2024)', color='white', fontsize=18, labelpad=12)
+    ax.set_ylabel(
+        'Electricity Generation per Capita\n(MWh/person, 2024)',
+        color='white',
+        fontsize=18,
+        labelpad=12
+    )
     ax.set_title(
         'Electricity Generation by Population and Source',
         color='white',
-        fontsize=19,
-        pad=30  # increase the number for more space below the top
+        fontsize=30,
+        pad=0,
+        y=0.93,
+        loc='right'
     )
 
     # White ticks
@@ -377,8 +572,8 @@ def plot_mobile():
     legend = ax.legend(
         handles[::-1], labels[::-1],  # reversed order
         title="Generation Source",
-        loc='upper right',
-        facecolor='#2a2a2a',
+        loc='center right',
+        facecolor=BACKGROUND,
         edgecolor='white',
         frameon=True,
         fontsize=14,
@@ -389,22 +584,107 @@ def plot_mobile():
 
     # Source label in bottom-right corner
     ax.text(
-        1.0, -0.04,
-        "Sources: Ember Energy and Our World in Data\nBy u/MadoctheHadoc",
+        1.0, -0.035,
+        "Sources: Ember Energy (electricity) and Our World in Data (population)\n By MadoctheHadoc",
         fontsize=10,
         color='white',
         ha='right',
         va='top',
         transform=ax.transAxes
     )
+    
+    if (annotate):
+        # Get index positions for each location
+        china_idx = df_final.index[df_final['Location'] == 'China'][0]
+        europe_idx = df_final.index[df_final['Location'] == 'Europe'][0]
+        south_asia_idx = df_final.index[df_final['Location'] == 'South Asia'][0]
+
+        # Annotation: China and USA
+        ax.annotate(
+            "China generates the most electricity in the world\nbut still produces much less than the US per capita",
+            xy=(left_positions[china_idx] + df_final['Width'].iloc[china_idx] / 2,
+                bottom[china_idx]),  # arrow target
+            xytext=(0.3, 8.7),  # text position
+            textcoords='data',
+            arrowprops=dict(arrowstyle='->', color=ANNO_COLOR),
+            color=ANNO_COLOR,
+            fontsize=10,
+            ha='left'
+        )
+
+        # Annotation: Europe and Latin America
+        ax.annotate(
+            "Europe and Latin America are only major\nregions with majority renewable energy",
+            xy=(left_positions[europe_idx] + df_final['Width'].iloc[europe_idx] / 2,
+                bottom[europe_idx]),
+            xytext=(1.2, 6.7),  # text position
+            textcoords='data',
+            arrowprops=dict(arrowstyle='->', color=ANNO_COLOR),
+            color=ANNO_COLOR,
+            fontsize=10,
+            ha='left'
+        )
+        
+        # Annotation: Developing World
+        ax.annotate(
+            "Per capita generation is very low across\nthe developing world and fossil fuels dominate",
+            xy=(left_positions[south_asia_idx] + df_final['Width'].iloc[south_asia_idx] / 2,
+                bottom[south_asia_idx]),
+            xytext=(2.6, 2.7),  # text position
+            textcoords='data',
+            arrowprops=dict(arrowstyle='->', color=ANNO_COLOR),
+            color=ANNO_COLOR,
+            fontsize=10,
+            ha='left'
+        )
 
     # Remove black outline (spines)
     for spine in ax.spines.values():
         spine.set_visible(False)
 
     plt.tight_layout()
-    plt.savefig("mobile_chart.png", dpi=300, bbox_inches='tight')
+    plt.savefig("visualizations/ElectricityGenerationMobile.png", dpi=300, bbox_inches='tight')
     plt.show()
 
-# plot_desktop()
-plot_mobile()
+
+def europe_regionalize(df):
+    europe_countries = [
+        'Austria', 'Belgium', 'Bulgaria', 'Croatia', 'Cyprus', 'Czech Republic',
+        'Denmark', 'Estonia', 'Finland', 'France', 'Germany', 'Greece',
+        'Hungary', 'Ireland', 'Italy', 'Latvia', 'Lithuania', 'Luxembourg',
+        'Malta', 'Netherlands', 'Poland', 'Portugal', 'Romania', 'Slovakia',
+        'Slovenia', 'Spain', 'Sweden', 'Norway', 'Switzerland', 'Liechtenstein',
+        'Iceland', 'United Kingdom', 'Russia', 'Ukraine', 'Belarus', 'Armenia',
+        'Georgia', 'Azerbaijan', 'Bosnia and Herzegovina', 'Serbia',
+        'Montenegro', 'Albania'
+    ]
+    df = df[df['Location'].isin(europe_countries)].copy()
+
+    return regionalize(df, EUROPEAN_REGIONS)
+
+
+def regionalize(df, regions):
+    df = tag_regions(df, regions)
+    df_final = prepare_final_dataframe(df, regions)
+    df_final = normalize_data(df_final)
+    df_final = df_final.sort_values(by='Total', ascending=False).reset_index(drop=True)
+    return df_final
+
+
+def main():
+    df_energy, df_population = load_data()
+    df = merge_data(df_energy, df_population)
+    df = df[df['Location'] != 'World'].copy()
+    
+    # regions = REGIONS if USE_SIMPLIFIED_REGIONS else SIMPLIFIED_REGIONS
+    # df_final = regionalize(df, regions)
+
+    df_final = europe_regionalize(df)
+
+    if USE_SIMPLIFIED_REGIONS:
+        plot_mobile(df_final, ANNOTATE_MOBILE)
+    else:
+        plot_desktop(df_final, ANNOTATE_DESKTOP)
+
+if __name__ == "__main__":
+    main()
