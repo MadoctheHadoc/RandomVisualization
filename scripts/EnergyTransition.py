@@ -172,13 +172,13 @@ REGIONS = [
         ]
     },
     {
-    'name': 'Latin America',
-    'countries': [
-        'Argentina', 'Bolivia', 'Brazil', 'Chile', 'Colombia', 'Costa Rica', 'Cuba',
-        'Dominican Republic', 'Ecuador', 'El Salvador', 'Guatemala', 'Honduras',
-        'Mexico', 'Nicaragua', 'Panama', 'Paraguay', 'Peru', 'Uruguay', 'Venezuela',
-        'Haiti', 'Jamaica', 'Trinidad and Tobago', 'Belize'
-    ]
+        'name': 'Latin America',
+        'countries': [
+            'Argentina', 'Bolivia', 'Brazil', 'Chile', 'Colombia', 'Costa Rica', 'Cuba',
+            'Dominican Republic', 'Ecuador', 'El Salvador', 'Guatemala', 'Honduras',
+            'Mexico', 'Nicaragua', 'Panama', 'Paraguay', 'Peru', 'Uruguay', 'Venezuela',
+            'Haiti', 'Jamaica', 'Trinidad and Tobago', 'Belize'
+        ]
     },
     {
         'name': 'CANZUK',
