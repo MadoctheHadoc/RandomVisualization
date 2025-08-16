@@ -507,6 +507,7 @@ def plot_desktop(df_final, annotate):
     plt.savefig("visualizations/ElectricityGenerationDesktop.png", dpi=300, bbox_inches='tight')
     plt.show()
 
+
 def plot_mobile(df_final, annotate):
     abbreviations = {
         'United States': 'USA',
