@@ -87,27 +87,33 @@ SUBSECTOR_DISPLAY_NAMES = {
 
 # ==================== REGIONS ====================
 REGIONS = [
-    {'name': 'Western\nEurope', 'countries': [
+    {'name': 'EEA\n& UK', 'countries': [
         'Austria', 'Belgium', 'Cyprus', 'Denmark', 'Finland', 'France', 'Germany',
         'Greece', 'Ireland', 'Italy', 'Luxembourg', 'Malta', 'Netherlands',
         'Portugal', 'Spain', 'Sweden', 'Norway', 'Switzerland', 'Liechtenstein',
-        'Iceland', 'United Kingdom'
+        'Iceland', 'Czechia', 'Latvia', 'Lithuania', 'Estonia', 'Hungary',
+        'Poland', 'Romania', 'Slovak Republic', 'Slovenia', 'Bulgaria', 'Croatia',
+        'United Kingdom'
     ]},
     {'name': 'USA &\nCanada', 'countries': ['United States', 'Canada']},
-    {'name': 'China', 'countries': ['China']},
-    {'name': 'South Asia', 'countries': ['India', 'Bangladesh', 'Bhutan', 'Nepal', 'Pakistan', 'Sri Lanka', 'Maldives']},
-    {'name': 'Eastern\nEurope', 'countries': [
+    {'name': 'China', 'countries': ['China', 'Hong Kong SAR, China', 'Macao SAR, China']},
+    {'name': 'Other\nSouth Asia', 'countries': [
+        'Bangladesh', 'Bhutan', 'Nepal', 'Pakistan', 'Sri Lanka', 'Maldives'
+    ]},
+    {'name': 'India', 'countries': [
+        'India'
+    ]},
+    {'name': 'Non-EEA\nEurope', 'countries': [
         'Russian Federation', 'Ukraine', 'Belarus', 'Armenia', 'Georgia', 'Azerbaijan',
-        'Albania', 'Bulgaria', 'Croatia', 'Serbia', 'Bosnia and Herzegovina',
-        'Czechia', 'Latvia', 'Lithuania', 'Estonia', 'Hungary', 'Poland',
-        'Romania', 'Slovak Republic', 'Slovenia', 'North Macedonia', 'Montenegro'
+        'Albania', 'Serbia', 'Bosnia and Herzegovina', 'North Macedonia', 'Montenegro',
+        'Moldova'
     ]},
     {'name': 'ASEAN', 'countries': [
         'Brunei Darussalam', 'Cambodia', 'Indonesia', 'Lao PDR', 'Malaysia', 'Myanmar',
         'Philippines', 'Thailand', 'Viet Nam'
     ]},
-    {'name': 'Asia\nDeveloped', 'countries': [
-        'Korea, Rep.', 'Taiwan', 'Hong Kong SAR, China', 'Macao SAR, China', 'Singapore', 'Japan'
+    {'name': 'Japan &\nS. Korea', 'countries': [
+        'Korea, Rep.', 'Japan'
     ]},
     {'name': 'Africa', 'countries': [
         'Nigeria', 'South Africa', 'Ethiopia', 'Kenya', 'Tanzania', 'Uganda', 'Ghana', 'Angola',
@@ -124,17 +130,19 @@ REGIONS = [
         'United Arab Emirates', 'Bahrain', 'Kuwait', 'Syrian Arab Republic', 'Yemen, Rep.',
         'West Bank and Gaza', 'Turkiye', 'Afghanistan'
     ]},
+    # {'name': 'South\nAmerica', 'countries': [
+    #     'Argentina', 'Bolivia', 'Chile', 'Colombia',
+    #     'Paraguay', 'Peru', 'Uruguay', 'Venezuela, RB', 'Brazil'
+    # ]},
+    # {'name': 'Central\nAmerica', 'countries': [
+    #     'Mexico', 'Belize', 'Costa Rica', 'El Salvador', 'Guatemala', 'Honduras', 'Nicaragua', 'Panama'
+    # ]},
     {'name': 'Latin\nAmerica', 'countries': [
         'Argentina', 'Bolivia', 'Brazil', 'Chile', 'Colombia', 'Costa Rica', 'Cuba',
         'Dominican Republic', 'Ecuador', 'El Salvador', 'Guatemala', 'Honduras',
         'Mexico', 'Nicaragua', 'Panama', 'Paraguay', 'Peru', 'Uruguay', 'Venezuela, RB',
         'Haiti', 'Jamaica', 'Trinidad and Tobago', 'Belize'
-    ]},
-    # {'name': 'Rest of Asia', 'countries': [
-    #     'Bangladesh', 'Bhutan', 'Nepal', 'Pakistan', 'Sri Lanka', 'Maldives'  # South Asia not in India
-    #     'Kazakhstan', 'Kyrgyz Republic', 'Tajikistan', 'Turkmenistan', 'Uzbekistan',  # Central Asia
-    #     'Mongolia',  # Other Asian states
-    # ]}
+    ]}
 ]
 
 SIMPLIFIED_REGIONS = [
@@ -429,7 +437,7 @@ def aggregate_all_regions(df, regions):
     aggregated = []
     for region in regions:
         aggregated.append(aggregate_region(df[df['Region'] == region['name']], region['name']))
-    aggregated.append(aggregate_region(df[df['Region'] == 'Other'], 'Rest of World'))
+    aggregated.append(aggregate_region(df[df['Region'] == 'Other'], 'Rest of\nWorld'))
     df_agg = pd.DataFrame(aggregated)
     df_agg = df_agg[df_agg['LaborForce'] > 0]
     return df_agg
@@ -741,11 +749,11 @@ def annotate_function(ax):
         ('Japanese, Korean and Taiwanese industry leads the\n' +
          'world in productivity despite having no natural\n' + 
          'resources while services and agriculture have lagged behind',
-        (0.5, 111000), (0.63, 95000)),
+        (0.6, 111000), (0.68, 95000)),
         ('The Gulf and Russian economies are driven mostly\n' + 
          'by highly productive resource extraction of oil & gas\n' +
          'to the exclusion of other industries', 
-        (0.9, 87000), (1.04, 70000)),
+        (1.0, 87000), (1.07, 70000)),
         ('China has grown rapidly into the largest economy in\n' + 
          'the world (29T) through manufacturing-led export but\n' +
          'the country will face challenges transitioning to a\n' +
