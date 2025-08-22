@@ -130,13 +130,6 @@ REGIONS = [
         'United Arab Emirates', 'Bahrain', 'Kuwait', 'Syrian Arab Republic', 'Yemen, Rep.',
         'West Bank and Gaza', 'Turkiye', 'Afghanistan'
     ]},
-    # {'name': 'South\nAmerica', 'countries': [
-    #     'Argentina', 'Bolivia', 'Chile', 'Colombia',
-    #     'Paraguay', 'Peru', 'Uruguay', 'Venezuela, RB', 'Brazil'
-    # ]},
-    # {'name': 'Central\nAmerica', 'countries': [
-    #     'Mexico', 'Belize', 'Costa Rica', 'El Salvador', 'Guatemala', 'Honduras', 'Nicaragua', 'Panama'
-    # ]},
     {'name': 'Latin\nAmerica', 'countries': [
         'Argentina', 'Bolivia', 'Brazil', 'Chile', 'Colombia', 'Costa Rica', 'Cuba',
         'Dominican Republic', 'Ecuador', 'El Salvador', 'Guatemala', 'Honduras',
@@ -746,9 +739,9 @@ def annotate_function(ax):
          'a much larger tech & finance sector compared to other\n' + 
          'developed countries',
         (0.32, 125000), (0.25, 115000)),
-        ('Japanese, Korean and Taiwanese industry leads the\n' +
-         'world in productivity despite having no natural\n' + 
-         'resources while services and agriculture have lagged behind',
+        ('Japanese, and Korean industry leads the world in\n' +
+         'productivity despite having no natural resources\n' + 
+         'while services and agriculture have lagged behind',
         (0.6, 111000), (0.68, 95000)),
         ('The Gulf and Russian economies are driven mostly\n' + 
          'by highly productive resource extraction of oil & gas\n' +
@@ -760,17 +753,18 @@ def annotate_function(ax):
          'service-based economy as the population ages and\n' +
          'and declines while growth has slowed',
         (1.4, 63000), (1.6, 45500)),
-        ('South Asian services are oddly productive in comparison to\n' +
-         'industry, indicating potential for a \'service-led export\'\n' +
-         'boom, however it isn\'t clear whether there is enough\n' +
-         'demand for service export to be able to absorb the agrarian\n' +
-         'labor force the way manufacturing-led export did in China',
-        (2.9, 46000), (4.0, 29500)),
-        ('Africa is a diverse continent\n' +
+        ('India\'s services are oddly productive in comparison to its\n' +
+         'industry, indicating a potential \'service-led export\' boom,\n' +
+         'however it isn\'t clear that this can generate enough\n' +
+         'employment to absorb the agrarian labor force in the\n' +
+         'same way manufacturing-led export transformed China',
+        (3.0, 46000), (3.8, 31700)),
+        ('Africa is a diverse continent but\n' +
          'but broadly, it is agrarian and\n' + 
-         'extractive, making up >20%\n' +
-         'of global natural resource rents',
-        (4.1, 65000), (4.55, 31500))
+         'extractive with >20% of global\n' +
+         'natural resource rents concentrated\n' +
+         'in just 5% of the global economy',
+        (4.0, 65000), (4.55, 31500))
     ]
     
     fs = 16 if USE_SIMPLIFIED_REGIONS else 14
