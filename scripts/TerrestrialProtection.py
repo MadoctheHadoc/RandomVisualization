@@ -23,7 +23,7 @@ INDICATORS = {
 # Define color palette
 BG_COLOR = "#ededed"
 ANNO_COLOR = "#777777"
-TEXT_COLOR = "#4D4D4D"
+TEXT_COLOR = "#404040"
 
 # Variables woah
 USE_SIMPLIFIED_REGIONS = True
@@ -89,15 +89,68 @@ SIMPLIFIED_REGIONS = [
     ]}
 ]
 
+BIOGEOGRAPHIC_REALMS = [
+    {'name': 'Nearctic', 'countries': [
+        'United States', 'Canada', 'Greenland', 'Mexico'
+    ]},
+    {'name': 'Palearctic', 'countries': [
+        'Austria', 'Belgium', 'Cyprus', 'Denmark', 'Finland', 'France', 'Germany',
+        'Greece', 'Ireland', 'Italy', 'Luxembourg', 'Malta', 'Netherlands',
+        'Portugal', 'Spain', 'Sweden', 'Norway', 'Switzerland', 'Liechtenstein',
+        'Iceland', 'Czechia', 'Latvia', 'Lithuania', 'Estonia', 'Hungary', 'San Marino',
+        'Poland', 'Romania', 'Slovak Republic', 'Slovenia', 'Bulgaria', 'Croatia',
+        'United Kingdom', 'Andorra', 'Monaco', 'Gibraltar', 'Isle of Man', 'Channel Islands',
+        'Albania', 'Armenia', 'Azerbaijan', 'Belarus', 'Bosnia and Herzegovina',
+        'Georgia', 'Kosovo', 'Moldova', 'Montenegro', 'North Macedonia', 'Serbia', 'Ukraine',
+        'Faroe Islands', 'Small states', 'Not classified', 'Russian Federation', 
+        'Kazakhstan', 'Uzbekistan', 'Turkmenistan', 'Tajikistan', 'Kyrgyz Republic', 'Afghanistan',
+        'China', 'Korea, Rep.', 'Hong Kong SAR, China', 'Macao SAR, China', 'Japan', 'Mongolia',
+        'Korea, Dem. People\'s Rep.', 'Egypt, Arab Rep.', 'Libya', 'Morocco', 'Algeria', 'Tunisia',
+        'Iran, Islamic Rep.', 'Turkiye', 'Iraq', 'Israel', 'Jordan', 'Lebanon', 'Kuwait',
+        'Syrian Arab Republic', 'West Bank and Gaza',
+    ]},
+    {'name': 'Indo-Malay', 'countries': [
+        'India', 'Pakistan', 'Bangladesh', 'Sri Lanka', 'Nepal', 'Bhutan', 'Maldives',
+        'Brunei Darussalam', 'Cambodia', 'Indonesia', 'Lao PDR', 'Malaysia', 'Myanmar',
+        'Philippines', 'Thailand', 'Viet Nam', 'Singapore', 'Timor-Leste'
+    ]},
+    {'name': 'Neotropical', 'countries': [
+        'Argentina', 'Bolivia', 'Chile', 'Colombia', 'Ecuador', 'Guyana',
+        'Paraguay', 'Peru', 'Suriname', 'Uruguay', 'Venezuela, RB', 'Brazil',
+        'Belize', 'Costa Rica', 'El Salvador', 'Guatemala', 'Honduras', 'Nicaragua', 'Panama',
+        'Antigua and Barbuda', 'Bahamas, The', 'Barbados', 'Cuba', 'Dominica',
+        'Dominican Republic', 'Grenada', 'Haiti', 'Jamaica', 'St. Kitts and Nevis',
+        'St. Lucia', 'St. Vincent and the Grenadines', 'Trinidad and Tobago',
+        'Aruba', 'British Virgin Islands', 'Cayman Islands', 'Curacao',
+        'Puerto Rico (US)', 'Sint Maarten (Dutch part)', 'St. Martin (French part)',
+        'Turks and Caicos Islands', 'Virgin Islands (U.S.)', 'Bermuda'
+    ]},
+    {'name': 'Afrotropical', 'countries': [
+        'Nigeria', 'Ghana', "Cote d'Ivoire", 'Senegal', 'Mali', 'Burkina Faso', 'Niger', 'Mauritania',
+        'Benin', 'Togo', 'Sierra Leone', 'Liberia', 'Guinea', 'Guinea-Bissau', 'Gambia, The',
+        'Cabo Verde',
+        'Ethiopia', 'Kenya', 'Tanzania', 'Uganda', 'Rwanda', 'Burundi', 'Somalia', 'Djibouti',
+        'Eritrea', 'South Sudan', 'Seychelles', 'Comoros', 'Mauritius', 'Madagascar',
+        'Cameroon', 'Central African Republic', 'Chad', 'Congo, Dem. Rep.', 'Congo, Rep.',
+        'Equatorial Guinea', 'Gabon', 'Sao Tome and Principe',
+        'South Africa', 'Botswana', 'Namibia', 'Zambia', 'Zimbabwe', 'Malawi', 'Mozambique',
+        'Angola', 'Lesotho', 'Eswatini',
+        'Saudi Arabia', 'Yemen, Rep.', 'Oman', 'Qatar', 'United Arab Emirates', 'Bahrain', 
+    ]},
+    {'name': 'Australasia', 'countries': [
+        'Australia', 'New Zealand', 'Papua New Guinea', 'Fiji', 'Solomon Islands', 'Vanuatu',
+        'Samoa', 'Kiribati', 'Micronesia, Fed. Sts.', 'Tonga', 'Palau', 'Marshall Islands',
+        'Tuvalu', 'Nauru', 'American Samoa', 'French Polynesia', 'New Caledonia',
+        'Guam', 'Northern Mariana Islands'
+    ]}
+]
+
 REGIONS = [
-    {'name': 'United States', 'countries': [
+    {'name': 'United\nStates', 'countries': [
         'United States'
     ]},
     {'name': 'Canada', 'countries': [
         'Canada'
-    ]},
-    {'name': 'Greenland', 'countries': [
-        'Greenland'
     ]},
     {'name': 'Europe', 'countries': [
         'Austria', 'Belgium', 'Cyprus', 'Denmark', 'Finland', 'France', 'Germany',
@@ -112,7 +165,7 @@ REGIONS = [
     {'name': 'Russia', 'countries': [
         'Russian Federation'
     ]},
-    {'name': 'Central Asia', 'countries': [
+    {'name': 'Central\nAsia', 'countries': [
         'Kazakhstan', 'Uzbekistan', 'Turkmenistan', 'Tajikistan', 'Kyrgyz Republic', 'Afghanistan'
     ]},
     {'name': 'East\nAsia', 'countries': [
@@ -123,10 +176,13 @@ REGIONS = [
     ]},
     {'name': 'Southeast\nAsia', 'countries': [
         'Brunei Darussalam', 'Cambodia', 'Indonesia', 'Lao PDR', 'Malaysia', 'Myanmar',
-        'Philippines', 'Thailand', 'Viet Nam', 'Singapore', 'Timor-Leste'
+        'Philippines', 'Thailand', 'Viet Nam', 'Singapore', 'Timor-Leste', 'Papua New Guinea'
     ]},
-    {'name': 'South\nAmerica', 'countries': [
-        'Argentina', 'Bolivia', 'Brazil', 'Chile', 'Colombia', 'Ecuador', 'Guyana',
+    {'name': 'Brazil', 'countries': [
+        'Brazil'
+    ]},
+    {'name': 'Rest of\nS. America', 'countries': [
+        'Argentina', 'Bolivia', 'Chile', 'Colombia', 'Ecuador', 'Guyana',
         'Paraguay', 'Peru', 'Suriname', 'Uruguay', 'Venezuela, RB'
     ]},
     {'name': 'Middle\nEast', 'countries': [
@@ -135,7 +191,7 @@ REGIONS = [
         'Yemen, Rep.', 'West Bank and Gaza'
     ]},
     {'name': 'North\nAfrica', 'countries': [
-        'Egypt, Arab Rep.', 'Libya', 'Morocco', 'Algeria', 'Tunisia', 'Sudan'
+        'Egypt, Arab Rep.', 'Libya', 'Morocco', 'Algeria', 'Tunisia', 'Sudan', 'Chad'
     ]},
     {'name': 'West\nAfrica', 'countries': [
         'Nigeria', 'Ghana', "Cote d'Ivoire", 'Senegal', 'Mali', 'Burkina Faso', 'Niger', 'Mauritania',
@@ -144,31 +200,49 @@ REGIONS = [
     ]},
     {'name': 'East\nAfrica', 'countries': [
         'Ethiopia', 'Kenya', 'Tanzania', 'Uganda', 'Rwanda', 'Burundi', 'Somalia', 'Djibouti',
-        'Eritrea', 'South Sudan', 'Seychelles', 'Comoros', 'Mauritius', 'Madagascar'
+        'Eritrea', 'South Sudan', 'Seychelles', 'Comoros', 'Mauritius'
     ]},
     {'name': 'Central\nAfrica', 'countries': [
-        'Cameroon', 'Central African Republic', 'Chad', 'Congo, Dem. Rep.', 'Congo, Rep.',
+        'Cameroon', 'Central African Republic', 'Congo, Dem. Rep.', 'Congo, Rep.',
         'Equatorial Guinea', 'Gabon', 'Sao Tome and Principe'
     ]},
     {'name': 'Southern\nAfrica', 'countries': [
         'South Africa', 'Botswana', 'Namibia', 'Zambia', 'Zimbabwe', 'Malawi', 'Mozambique',
-        'Angola', 'Lesotho', 'Eswatini'
+        'Angola', 'Lesotho', 'Eswatini', 'Madagascar'
     ]},
-    # {'name': 'Central America\n& Caribbean', 'countries': [
-    #     'Mexico', 'Belize', 'Costa Rica', 'El Salvador', 'Guatemala', 'Honduras', 'Nicaragua', 'Panama',
-    #     'Antigua and Barbuda', 'Bahamas, The', 'Barbados', 'Cuba', 'Dominica',
-    #     'Dominican Republic', 'Grenada', 'Haiti', 'Jamaica', 'St. Kitts and Nevis',
-    #     'St. Lucia', 'St. Vincent and the Grenadines', 'Trinidad and Tobago',
-    #     'Aruba', 'British Virgin Islands', 'Cayman Islands', 'Curacao',
-    #     'Puerto Rico (US)', 'Sint Maarten (Dutch part)', 'St. Martin (French part)',
-    #     'Turks and Caicos Islands', 'Virgin Islands (U.S.)'
-    # ]},
+    {'name': 'Central\nAmerica', 'countries': [
+        'Mexico', 'Belize', 'Costa Rica', 'El Salvador', 'Guatemala', 'Honduras', 'Nicaragua', 'Panama',
+        'Antigua and Barbuda', 'Bahamas, The', 'Barbados', 'Cuba', 'Dominica',
+        'Dominican Republic', 'Grenada', 'Haiti', 'Jamaica', 'St. Kitts and Nevis',
+        'St. Lucia', 'St. Vincent and the Grenadines', 'Trinidad and Tobago',
+        'Aruba', 'British Virgin Islands', 'Cayman Islands', 'Curacao',
+        'Puerto Rico (US)', 'Sint Maarten (Dutch part)', 'St. Martin (French part)',
+        'Turks and Caicos Islands', 'Virgin Islands (U.S.)'
+    ]},
     {'name': 'Oceania', 'countries': [
         'Australia', 'New Zealand', 'Papua New Guinea', 'Fiji', 'Solomon Islands', 'Vanuatu',
         'Samoa', 'Kiribati', 'Micronesia, Fed. Sts.', 'Tonga', 'Palau', 'Marshall Islands',
         'Tuvalu', 'Nauru', 'American Samoa', 'French Polynesia', 'New Caledonia',
         'Guam', 'Northern Mariana Islands'
     ]},
+]
+
+BIODIVERSITY_HOTSPOTS = [
+    REGIONS[7]['name'],  # ASEAN
+    REGIONS[8]['name'],   # Brazil
+    REGIONS[9]['name'],  # S. America
+    REGIONS[12]['name'],  # African groups:
+    REGIONS[13]['name'],
+    REGIONS[14]['name'],
+    REGIONS[15]['name'],
+    
+    SIMPLIFIED_REGIONS[4]['name'],
+    SIMPLIFIED_REGIONS[6]['name'],
+]
+
+POLAR_DESERTS = [
+    'Greenland',
+    'Antarctica'
 ]
 
 # ==================== FUNCTIONS ====================
@@ -238,20 +312,26 @@ def is_country_entity(name):
     return not any(name.startswith(geo) for geo in geographic_aggregates)
 
 def clean_data(df):
-    """Clean and prepare the data."""
+    """Clean and prepare the data, removing Greenland and Antarctica."""
+    # Sort and remove duplicates
     df = df.sort_values('date').drop_duplicates(subset=['Country'], keep='last')
+
+    # Remove Greenland and Antarctica
+    df = df[~df['Country'].isin(POLAR_DESERTS)]
+
+    # Filter out non-country entities
     df = df[df['Country'].apply(is_country_entity)]
-    
+
     # Convert to numeric and handle missing values
     numeric_columns = ['ProtectedLand_Pct', 'TotalLand_KM2']
     for col in numeric_columns:
         df[col] = pd.to_numeric(df[col], errors='coerce')
-    
+
     # Calculate derived metrics
     df['ProtectedLand_KM2'] = df['ProtectedLand_Pct'] * df['TotalLand_KM2'] / 100
-    print(df['ProtectedLand_KM2'])
-    
+
     return df
+
 
 def assign_protection_category(protection_pct):
     """Assign protection category based on percentage of protected land."""
@@ -371,18 +451,14 @@ def compute_left_positions(df_regions):
     return np.array(positions)
 
 def plot_protected_land_bars(ax, df_regions, left_positions):
-    """Plot the bars for protected land area with color based on species density."""
-    # Normalize species density for colormap
-    norm = plt.Normalize(
-        vmin=df_regions['EndemicSpecies'].min(),
-        vmax=df_regions['EndemicSpecies'].max()
-    )
-
-    # Use a colormap (e.g., 'viridis', 'plasma', 'YlGn', etc.)
-    cmap = plt.cm.YlGn  # Green gradient, but you can choose another
-
-    # Create a color for each bar based on species density
-    colors = cmap(norm(df_regions['EndemicSpecies'].values))
+    """Plot the bars for protected land area with green for biodiversity hotspots and grey otherwise."""
+    # Create a list of colors based on whether the region is a biodiversity hotspot
+    colors = []
+    for region in df_regions['Region']:
+        if region in BIODIVERSITY_HOTSPOTS:
+            colors.append('#2d922d')  # Dark green for hotspots
+        else:
+            colors.append(ANNO_COLOR)  # Grey for non-hotspots
 
     # Plot the bars with the calculated colors
     ax.bar(
@@ -395,11 +471,6 @@ def plot_protected_land_bars(ax, df_regions, left_positions):
         linewidth=1.5
     )
 
-    # Add a colorbar to show the scale
-    sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
-    sm.set_array([])
-    plt.colorbar(sm, ax=ax, label='Species Density per km²')
-
 def configure_protected_land_axes(ax, df_regions, left_positions):
     """Configure axes with responsive styling."""
     total_width = left_positions[-1] + df_regions['Width'].iloc[-1]
@@ -409,22 +480,22 @@ def configure_protected_land_axes(ax, df_regions, left_positions):
     ax.set_xticklabels([])
 
     ax.set_xlabel(
-        'Total Land Area (sq. km)',
+        'Total Land Area (millions of km²)',
         color=TEXT_COLOR,
         fontsize=18,
-        labelpad=18
+        labelpad=10
     )
     ax.set_ylabel(
-        'Protected Land Area (sq. km)',
+        '% Protected Land Area',
         color=TEXT_COLOR,
         fontsize=18
     )
     ax.set_title(
         f'Terrestrial Protected Land by Region ({DATA_YEAR})',
         color=TEXT_COLOR,
-        fontsize=24,
+        fontsize=32,
         pad=0,
-        y=0.93,
+        y=0.95,
         loc='center'
     )
     ax.tick_params(axis='y', colors=TEXT_COLOR, labelsize=12)
@@ -449,7 +520,7 @@ def add_protected_land_labels(ax, df_regions, left_positions):
             alpha=1.0
         )
         # Label
-        label = f"{region['Region']}\n{region['TotalLand_KM2'] / 1e6:.1f}M km²"
+        label = f"{region['Region']}\n{region['TotalLand_KM2'] / 1e6:.1f}M" #km²
         ax.text(
             center,
             ygap * 2,
