@@ -238,6 +238,10 @@ BIODIVERSITY_HOTSPOTS = [
     
     SIMPLIFIED_REGIONS[4]['name'],
     SIMPLIFIED_REGIONS[6]['name'],
+    
+    BIOGEOGRAPHIC_REALMS[2]['name'],
+    BIOGEOGRAPHIC_REALMS[3]['name'],
+    BIOGEOGRAPHIC_REALMS[4]['name'],
 ]
 
 POLAR_DESERTS = [
@@ -557,7 +561,7 @@ if __name__ == "__main__":
     print('\nFetching data...')
     df = fetch_world_bank_data(INDICATORS, DATA_YEAR)
     df = clean_data(df)
-    regions = SIMPLIFIED_REGIONS if USE_SIMPLIFIED_REGIONS else REGIONS
+    regions = BIOGEOGRAPHIC_REALMS if USE_SIMPLIFIED_REGIONS else REGIONS
     df_regions = assign_regions(df, regions)
     plot_protected_land(df_regions)
     
