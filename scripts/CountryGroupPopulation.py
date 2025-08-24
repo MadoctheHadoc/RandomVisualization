@@ -5,24 +5,106 @@ import numpy as np
 # ==================== STYLE CONSTANTS ====================
 BG_COLOR = '#2a2a2a'
 
+# Collapse text
+COLLAPSE = False
+
 # Define editable color palette
-CITY_COLORS = [
+BALTIC_COLORS = [
     "#22689d", "#3e85ba",  # Estonia (Tallinn, rest)
     "#9d2235", "#ba3e3e",  # Latvia (Riga, rest)
     "#126508", "#36a22a", "#197c0e"  # Lithuania (Vilnius, Kaunas, rest)
 ]
 
+SCANDINAVIAN_COLORS = [
+    "#22689d", "#3e85ba",  # Finland
+    "#72750B", "#b6b238", "#9d9922",  # Sweden
+    "#197c0e", "#36a22a",  # Norway
+    "#9d2235", "#c54747",  # Denmark
+]
+
+BENELUX_COLORS = [
+    "#22689d", "#65a4d5", "#3e85ba",  # Belgium
+    "#9d7222", "#e2b67c", "#d7a061", "#c18e46",  # Netherlands
+    "#29a22f"  # Luxembourg
+]
+
+YUGOSLAV_COLORS = [
+    "#22689d", "#3e85ba",  # Serbia (Belgrade, rest)
+    "#9d2235", "#ba3e3e",  # Croatia (Zagreb, rest)
+    "#197c0e", "#36a22a",  # Bosnia & Herzegovina (Sarajevo, rest)
+    "#84880F", "#afab30",  # Slovenia (Ljubljana, rest)
+    "#8438ac", "#a75fcd",  # North Macedonia
+    "#ac7a38", "#cd925f",  # Albania
+    "#47c1c5",              # Montenegro
+    "#8fbb4c"               # Kosovo
+]
+
 # ==================== DATA ====================
+
+YUGOSLAV_POPULATIONS = [
+    {'countries': 'Serbia', 'population': 6617200, 'cities': [
+        ('Belgrade', 1681405)  # Metro
+    ]},
+    {'countries': 'Croatia', 'population': 3861967, 'cities': [
+        ('Zagreb', 1086528)  # Metro
+    ]},
+    {'countries': 'Bosnia and\nHerzegovina', 'population': 2904256, 'cities': [
+        ('Sarajevo', 555210)  # Metro
+    ]},
+    {'countries': 'Slovenia', 'population': 2130850, 'cities': [
+        ('Ljubljana', 569475)  # Metro
+    ]},
+    {'countries': 'North\nMacedonia', 'population': 1836713, 'cities': [
+        ('Skopje', 526502)  # Metro
+    ]},
+    {'countries': 'Albania', 'population': 2402113, 'cities': [
+        ('Tirana', 800986)
+    ]},
+    {'countries': 'Kosovo', 'population': 1585566, 'cities': [
+    ]},
+    {'countries': 'Mont.', 'population': 623327, 'cities': [
+    ]}
+]
+
+BENELUX_POPULATIONS = [
+    {'countries': 'Belgium', 'population': 11742796, 'cities': [
+        ('Brussels', 3398857),
+        ('Antwerp', 1172740)
+    ]},
+    {'countries': 'Netherlands', 'population': 17811291, 'cities': [
+        ('Amsterdam', 2961252),
+        ('Rotterdam', 1880019),
+        ('Den Haag', 1150797)
+    ]},
+    {'countries': 'Lux.', 'population': 681973, 'cities': []}
+]
+
 BALTIC_POPULATIONS = [
     {'countries': 'Estonia', 'population': 1373101, 'cities': [
         ('Tallinn', 638076)
     ]},
     {'countries': 'Latvia', 'population': 1842226, 'cities': [
-        ('Riga', 615764)
+        ('Riga', 927953)
     ]},
     {'countries': 'Lithuania', 'population': 2897430, 'cities': [
         ('Vilnius', 747864),
-        ('Kaunas', 410475)
+        ('Kaunas', 403375)
+    ]}
+]
+
+SCANDINAVIAN_POPULATIONS = [
+    {'countries': 'Finland', 'population': 5635971, 'cities': [
+        ('Helsinki', 1616656)
+    ]},
+    {'countries': 'Sweden', 'population': 10588230, 'cities': [
+        ('Stockholm ', 2415139),
+        ('Gothenburg', 1080980)
+    ]},
+    {'countries': 'Norway', 'population': 5601049, 'cities': [
+        ('Oslo', 1588457)
+    ]},
+    {'countries': 'Denmark', 'population': 6001008, 'cities': [
+        ('Copenhagen', 2135634)
     ]}
 ]
 
@@ -75,7 +157,7 @@ def plot_population_pie(ax, data, colors, explode_dist=0.01):
     - City labels formatted as 'Name - population'
     """
     total_pop = sum(c['population'] for c in data)
-    start_angle = 140
+    start_angle = 70
     current_angle = start_angle
 
     wedges = []
@@ -132,13 +214,13 @@ def plot_population_pie(ax, data, colors, explode_dist=0.01):
 
             # City label formatted with commas
             mid_theta = (city_start_angle + city_start_angle + city_angle) / 2
-            label_r = inner_radius * 0.63
+            label_r = inner_radius * 0.7
             label_x = offset_x + label_r * np.cos(np.radians(mid_theta))
             label_y = offset_y + label_r * np.sin(np.radians(mid_theta))
             city_name, ignored = city
-            ax.text(label_x, label_y, f"{city_name}\n{pop:,}", color="white",
-                    ha="center", va="center", fontsize=17, fontweight='bold')
-
+            pop_text = f"{pop:,}" if COLLAPSE else f"{pop/1000:,.0f}K"
+            ax.text(label_x, label_y, f"{city_name}\n{pop_text}", color="white",
+                ha="center", va="center", fontsize=16, fontweight='bold')
             city_start_angle += city_angle
 
         # Country label in remaining empty section
@@ -148,7 +230,7 @@ def plot_population_pie(ax, data, colors, explode_dist=0.01):
             label_r_country = 0.6 # inside the empty portion of country
             label_x_country = offset_x + label_r_country * np.cos(np.radians(empty_mid_angle))
             label_y_country = offset_y + label_r_country * np.sin(np.radians(empty_mid_angle))
-            country_pop = next(c['population'] for c in BALTIC_POPULATIONS if c['countries'] == country_name)
+            country_pop = next(c['population'] for c in data if c['countries'] == country_name)
             ax.text(label_x_country, label_y_country, f"{country_name}\n{country_pop:,}",
                     color="white", ha="center", va="center", fontsize=22, fontweight='bold')
 
@@ -168,33 +250,42 @@ def get_group_mid_angle(explode_groups, sizes, group, start_angle, total):
     end = start_angle + sum(sizes[:group_indices[-1]+1]) / total * 360
     return (start + end) / 2
 
-def style_chart(ax):
+def style_chart(ax, populations, people):
     """Apply chart title and style adjustments."""
     # Calculate total population
-    total_population = sum(c['population'] for c in BALTIC_POPULATIONS)
+    total_population = sum(c['population'] for c in populations)
     
     # Format with commas
     total_formatted = f"{total_population:,}"
     
     # Set title including total population and move it slightly down
-    ax.set_title(f'Where do the {total_formatted} Baltic People Live?',
+    ax.set_title(f'Where do the {total_formatted} {people} Live?',
                  color='white', fontsize=24, y=0.97) 
 
     # Add credits in smaller text at bottom-right
-    ax.text(1, -1.05, "Visualization by MadoctheHadoc\nUses 'Urban Area' populations\nSource: Wikipedia", 
+    ax.text(1, -1.07, "Visualization by MadoctheHadoc\nSource: Eurostat via Wikipedia\n" + 
+            "Uses 'Metro Area' definitions which\nincludes neighbouring towns", 
             color='white', fontsize=10, ha='right', va='bottom', alpha=1.0)
     
     plt.axis('equal')
 
 # ==================== MAIN FUNCTION ====================
-def plot_baltic_population_chart():
-    labels, sizes, explode_groups = prepare_pie_data(BALTIC_POPULATIONS)
+def plot_population_chart(populations, colors, filename, people):
+    labels, sizes, explode_groups = prepare_pie_data(populations)
     fig, ax = create_base_plot()
-    plot_population_pie(ax, BALTIC_POPULATIONS, CITY_COLORS)
-    style_chart(ax)
-    plt.savefig("visualizations/BalticPopulation.png", dpi=300, bbox_inches='tight')
+    plot_population_pie(ax, populations, colors)
+    style_chart(ax, populations, people)
+    plt.savefig(f"visualizations/{filename}Population.png", dpi=300, bbox_inches='tight')
     plt.close(fig)
 
 # ==================== EXECUTE ====================
 if __name__ == "__main__":
-    plot_baltic_population_chart()
+    plot_population_chart(
+        SCANDINAVIAN_POPULATIONS, SCANDINAVIAN_COLORS, 'Scandinavia', 'Scandinavians')
+    # plot_population_chart(
+    #     BALTIC_POPULATIONS, BALTIC_COLORS, 'Baltic', 'Baltic People')
+    # plot_population_chart(
+    #     BENELUX_POPULATIONS, BENELUX_COLORS, 'Benelux', 'Benelux People')
+    # plot_population_chart(
+    #     YUGOSLAV_POPULATIONS, YUGOSLAV_COLORS, 'WestBalkan', 'West Balkan People')
+
