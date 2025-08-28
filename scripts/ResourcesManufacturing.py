@@ -86,17 +86,24 @@ def assign_bivariate_class(row, man_bins, res_bins):
     res_cat = np.digitize(row['ResourceRents_pct'], res_bins)
     return (man_cat - 1) * 3 + (res_cat - 1)  # Classes 0-15
 
-def create_legend(ax, colors, man_bins, res_bins):
+def create_legend(fig, ax, colors, man_bins, res_bins):
     """Create a 3x3 bivariate legend grid with ranges labeled inside each cell."""
     # Coordinates for a 3x3 grid
-    legend_ax = inset_axes(ax, width="20%", height="20%", loc='lower left')
+    legend_ax = inset_axes(
+        ax,
+        width="100%",
+        height="100%",
+        bbox_to_anchor=(0.35, 0.15, 0.15, 0.15),  # (x, y, width, height) in figure coordinates
+        bbox_transform=fig.transFigure,  # Use figure coordinates
+    )
+    
     label_bins = (res_bins, man_bins)    
     labels = [[] for ignored in range(len(label_bins))]
     for i in range(len(label_bins)):
         bins = label_bins[i]
-        labels[i].append(f"<{bins[1]}%")
-        labels[i].extend([f"{bins[i]}-{bins[i+1]}%" for i in range(1, len(bins) - 2)])
-        labels[i].append(f">{bins[len(bins) - 2]}%")
+        labels[i].append(f"0-{bins[1]}")
+        labels[i].extend([f"{bins[i]}-{bins[i+1]}" for i in range(1, len(bins) - 2)])
+        labels[i].append(f">{bins[len(bins) - 2]}")
 
     res_length = len(res_bins) - 1
     man_length = len(man_bins) - 1
@@ -114,9 +121,29 @@ def create_legend(ax, colors, man_bins, res_bins):
     for i, label in enumerate(reversed(labels[1])):
         legend_ax.text(-0.05, i + 0.5, label, ha='right', va='center', fontsize=10, color=ANNO_COLOR)
 
+    # Downward arrow (Manufacturing, vertical axis)
+    legend_ax.annotate(
+        text='',
+        xy=(res_length + 0.1, 0),  # Arrow tip (end)
+        xytext=(res_length + 0.1, man_length),  # Arrow base (start, moved further up)
+        arrowprops=dict(arrowstyle='->', color=ANNO_COLOR, lw=1)
+    )
+    legend_ax.text(man_length + 0.2, res_length / 2, "Manufacturing\n% of GDP",
+                   va='center', ha='left', fontsize=10, color=ANNO_COLOR)
+
+    # Rightward arrow (Natural Resource Rents, horizontal axis)
+    legend_ax.annotate(
+        text='',
+        xy=(res_length, -0.1),  # Arrow tip (end)
+        xytext=(0, -0.1),  # Arrow base (start, moved further up)
+        arrowprops=dict(arrowstyle='->', color=ANNO_COLOR, lw=1)
+    )
+    legend_ax.text(man_length / 2, -0.2, "Natural Resource Rents\n% of GDP",
+                   va='top', ha='center', fontsize=10, color=ANNO_COLOR)
+
     # Axis limits and styling
-    legend_ax.set_xlim(0, res_length)
-    legend_ax.set_ylim(0, man_length)
+    legend_ax.set_xlim(-0.2, res_length + 0.2)
+    legend_ax.set_ylim(-0.2, man_length + 0.2)
     legend_ax.set_aspect('equal')
     legend_ax.axis('off')
 
@@ -124,12 +151,12 @@ def annotate_map(ax):
     locations = [
         (-30, 45, False),
         (-8, 0, False),
-        (123, 33, False),
+        (126, 33, False),
         (66, 2, False),
         (84, 41, True),
         (115, -32, True),
         (-92, 6, False),
-        (60, 70, True)
+        (60, 69, True)
     ]  # x, y coordinates for annotations
     
     labels = [
@@ -195,17 +222,21 @@ def visualize(df_cleaned, projection_epsg="ESRI:54042"):
             )
 
     # Add legend as a separate inset axis
-    create_legend(ax, COLORS, MAN_BINS, RES_BINS)
+    create_legend(fig, ax, COLORS, MAN_BINS, RES_BINS)
 
     # Annotations
     annotate_map(ax)
+    
+    # Main title
+    ax.set_title('Are countries Making or Taking?',
+        fontsize=24, fontweight='bold', y=1.02)
 
-    # Styling
-    ax.set_title(
-        f'Are countries Making or Taking?',
-        fontsize=24
+    # Subtitle with different styling
+    ax.text(
+        0.5, 1.0,
+        f'Manufacturing & Resource Extraction in {DATA_YEAR}',
+        fontsize=16, color=ANNO_COLOR, ha='center', transform=ax.transAxes
     )
-    # Manufacturing & Resource Extraction in {DATA_YEAR}
     ax.axis('off')
 
     ax.set_xlim(-11000000, 15000000)  # meters in Robinson projection
