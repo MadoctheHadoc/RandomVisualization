@@ -32,17 +32,17 @@ COLORS = {
     'Wind': "#539CB0",
     'Nuclear': "#70B053",
     'Other': "#7D4AA6",
-    'Gas': "#C48659",
-    'Oil': "#A65E4A",
-    'Coal': "#8D3E3E"
+    'Gas': "#905F41",
+    'Oil': "#7F4533",
+    'Coal': "#562A2A"
 }
 
-ANNO_COLOR = '#888888'
+ANNO_COLOR = "#929292"
 
 BACKGROUND = '#2a2a2a'
 
 # Flags
-USE_SIMPLIFIED_REGIONS = False
+USE_SIMPLIFIED_REGIONS = True
 ANNOTATE = True
 GROUP_REMAINDER = True
 
@@ -108,7 +108,7 @@ SIMPLIFIED_REGIONS = [
 
 REGIONS = [
     {
-        'name': 'USA &\nCanada',
+        'name': 'USA &  \nCanada  ',
         'countries': [
             'United States', 'Canada'
         ]
@@ -144,17 +144,23 @@ REGIONS = [
         ]
     },
     {
-        'name': 'Rich\nAsia',
-        'countries': ['Japan', 'South Korea', 'Taiwan', 'Hong Kong', 'Macau']
+        'name': '  Japan &\n  S. Korea',
+        'countries': ['Japan', 'South Korea']
     },
     {
-        'name': 'South Asia',
+        'name': 'Other\nSouth Asia',
         'countries': [
-            'India', 'Pakistan', 'Nepal', 'Bangladesh', 'Sri Lanka', 'Bhutan', 'Maldives'
+            'Pakistan', 'Nepal', 'Bangladesh', 'Sri Lanka', 'Bhutan', 'Maldives'
         ]
     },
     {
-        'name': 'Africa',
+        'name': 'India',
+        'countries': [
+            'India',
+        ]
+    },
+    {
+        'name': 'Sub-Saharan\nAfrica',
         'countries': [
             'Nigeria', 'South Africa', 'Ethiopia', 'Kenya', 'Tanzania', 'Uganda', 'Ghana', 'Angola',
             'Mozambique', 'Ivory Coast', 'Cameroon', 'Niger', 'Burkina Faso', 'Mali', 'Malawi',
@@ -162,14 +168,15 @@ REGIONS = [
             'Sierra Leone', 'Liberia', 'Botswana', 'Namibia', 'Somalia', 'DR Congo', 'Congo',
             'Gabon', 'Guinea', 'Mauritania', 'Equatorial Guinea', 'Central African Republic', 'Lesotho',
             'Eswatini', 'Djibouti', 'Eritrea', 'Gambia', 'Guinea-Bissau', 'Burundi', 'Cape Verde',
-            'Comoros', 'Sao Tome and Principe', 'Seychelles', 'Egypt', 'Libya', 'Morocco', 'Algeria', 'Tunisia'
+            'Comoros', 'Sao Tome and Principe', 'Seychelles', 
         ]
     },
     {
-        'name': 'Middle\nEast',
+        'name': 'MENA',
         'countries': [
             'Saudi Arabia', 'Iran', 'Iraq', 'Israel', 'Jordan', 'Lebanon', 'Oman', 'Qatar', 
-            'United Arab Emirates', 'Bahrain', 'Kuwait', 'Syria', 'Yemen', 'Palestine', 'Turkey'
+            'United Arab Emirates', 'Bahrain', 'Kuwait', 'Syria', 'Yemen', 'Palestine', 'Turkey',
+            'Egypt', 'Libya', 'Morocco', 'Algeria', 'Tunisia'
         ]
     },
     {
@@ -395,7 +402,7 @@ def create_electricity_base_plot():
 
 def compute_left_positions(df_final):
     """Compute left positions based on widths with gaps between countries."""
-    gap = 0.013 if USE_SIMPLIFIED_REGIONS else 0.01
+    gap = 0.013 if USE_SIMPLIFIED_REGIONS else 0.006
     positions = [0]
     for i in range(len(df_final) - 1):
         next_pos = positions[-1] + df_final['Width'].iloc[i] + gap
@@ -405,7 +412,7 @@ def compute_left_positions(df_final):
 def plot_electricity_bars(ax, df_final, left_positions):
     """Plot the stacked bars for electricity generation."""
     bottom = np.zeros(len(df_final))
-    line_width_multiplier = 1.5 if USE_SIMPLIFIED_REGIONS else 1.5
+    line_width_multiplier = 1.0 if USE_SIMPLIFIED_REGIONS else 1.0
     
     for col in ORDERED_COLUMNS:
         lw = (1.0 if col in FOSSIL_FUELS else 1.0) * line_width_multiplier
@@ -414,7 +421,7 @@ def plot_electricity_bars(ax, df_final, left_positions):
                label=col, color=COLORS[col], align='edge',
                edgecolor=BACKGROUND, linewidth=lw)
         bottom += (df_final[col] * 1e6).values
-    
+        
     return bottom
 
 def configure_electricity_axes(ax, df_final, left_positions):
@@ -428,12 +435,13 @@ def configure_electricity_axes(ax, df_final, left_positions):
     
     smallsize = 24 if USE_SIMPLIFIED_REGIONS else 18
     titlesize = 28 if USE_SIMPLIFIED_REGIONS else 24
+    pad = 15 if USE_SIMPLIFIED_REGIONS else 10
     # Larger fonts for mobile readability
     ax.set_xlabel(
         'Population (2025)',
         color='white',
         fontsize=smallsize,
-        labelpad=18
+        labelpad=pad
     )
     ax.set_ylabel(
         'Generation per Capita (MWh/person) 2024',
@@ -505,7 +513,7 @@ def add_electricity_legend(ax):
 
 def add_electricity_source_label(ax):
     """Add source label with responsive positioning."""
-    position = (0.99, 0.96) if USE_SIMPLIFIED_REGIONS else (0.99, 0.9)
+    position = (0.99, 0.96) if USE_SIMPLIFIED_REGIONS else (0.99, 0.88)
     size = 14 if USE_SIMPLIFIED_REGIONS else 12
     
     ax.text(
@@ -522,18 +530,18 @@ def add_electricity_annotations(ax, df_final, left_positions, bottom):
     simplified_annotations = [
         {
             'location': 'China',
-            'text': "China generates the most electricity in the world\nbut still produces much less than the US per capita",
-            'text_pos': (0.3, 8.7),
+            'text': "China generates the most electricity\nin the world but still produces much\nless than the US per capita",
+            'text_pos': (0.25, 8.7),
         },
         {
             'location': 'Europe\n(ex. Russia)',
-            'text': "Europe and Latin America are only major\nregions with majority renewable energy",
-            'text_pos': (1.2, 6.7),
+            'text': "Europe and Latin America are\nthe only regions with majority\nrenewable electricity",
+            'text_pos': (1.1, 6.7),
         },
         {
             'location': 'South Asia',
-            'text': "Per capita generation is very low across the\ndeveloping world and fossil fuels dominate",
-            'text_pos': (2.4, 2.7),
+            'text': "Per capita generation is very low\nacross the developing world and\nfossil fuels dominate",
+            'text_pos': (2.5, 2.7),
         }
     ]
     
@@ -541,22 +549,27 @@ def add_electricity_annotations(ax, df_final, left_positions, bottom):
         {
             'location': 'China',
             'text': "China is so big that it generates the most wind,\nsolar, hydro and coal power in the world!",
-            'text_pos': (0.4, 8.7),
+            'text_pos': (0.44, 8.7),
         },
         {
-            'location': 'Rich\nAsia',
+            'location': REGIONS[5]['name'],
             'text': "Japan and South Korea lag behind the rest of\nthe developed world in renewable roll out",
-            'text_pos': (0.25, 11.0),
+            'text_pos': (0.3, 11.0),
         },
         {
-            'location': 'South Asia',
+            'location': 'India',
             'text': "Per capita generation is very low across\nthe developing world and fossil fuels dominate",
-            'text_pos': (2.6, 2.5),
+            'text_pos': (3.1, 2.5),
         },
         {
-            'location': 'Middle\nEast',
-            'text': "The Middle East is the only region to use\nsignificant amounts of oil-generated electricity",
-            'text_pos': (1.3, 6.7),
+            'location': 'MENA',
+            'text': "The Middle East & North Africa\nis the only region to use significant\namounts of oil-generated electricity",
+            'text_pos': (2.2, 4.6),
+        },
+        {
+            'location': REGIONS[2]['name'],
+            'text': "Europe runs the most decarbonised\nelectrical grid of any major region\nwith >70% of low carbon sources",
+            'text_pos': (1.6, 6.6),
         }
     ]
     
@@ -624,7 +637,6 @@ def main():
     
     regions = SIMPLIFIED_REGIONS if USE_SIMPLIFIED_REGIONS else REGIONS
     df_final = regionalize(df, regions)
-
     plot_electricity(df_final)
 
 if __name__ == "__main__":
