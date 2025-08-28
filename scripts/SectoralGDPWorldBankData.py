@@ -144,7 +144,7 @@ SIMPLIFIED_REGIONS = [
     {'name': 'South Asia', 'countries': [
         'India', 'Pakistan', 'Bangladesh', 'Sri Lanka', 'Nepal', 'Bhutan', 'Maldives', 'Afghanistan'
     ]},
-    {'name': 'Other\nDeveloped', 'countries': [
+    {'name': 'Other\nDeveloped', 'countries': [ # IMF definition of "developed" + EU
         'Austria', 'Belgium', 'Cyprus', 'Denmark', 'Finland', 'France', 'Germany',
         'Greece', 'Ireland', 'Italy', 'Luxembourg', 'Malta', 'Netherlands',
         'Portugal', 'Spain', 'Sweden', 'Norway', 'Switzerland', 'Liechtenstein',
