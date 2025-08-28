@@ -14,22 +14,22 @@ INDICATORS = {
     'NY.GDP.TOTL.RT.ZS': 'ResourceRents_pct'
 }
 CACHE_FILE = f"cache/resource_manufacturing_{DATA_YEAR}.pkl"
-# COLORS = [
-#     "#e8e8e8", "#e4acac", "#c85a5a",
-#     "#b0d5df", "#ad9ea5", "#985356",
-#     "#64acbe", "#627f8c", "#574249",
-# ]
 COLORS = [
-    "#e8e8e8", "#ddb9b9", "#d38a8a", "#c85a5a",
-    "#bdd4da", "#b2a8ae", "#aa7d82", "#a15256",
-    "#91c0cc", "#8998a3", "#83717b", "#7c4a53",
-    "#64acbe", "#608898", "#5b6574", "#574249",
+    "#e8e8e8", "#e4acac", "#c85a5a",
+    "#b0d5df", "#ad9ea5", "#985356",
+    "#64acbe", "#627f8c", "#574249",
 ]
+# COLORS = [
+#     "#e8e8e8", "#ddb9b9", "#d38a8a", "#c85a5a",
+#     "#bdd4da", "#b2a8ae", "#aa7d82", "#a15256",
+#     "#91c0cc", "#8998a3", "#83717b", "#7c4a53",
+#     "#64acbe", "#608898", "#5b6574", "#574249",
+# ]
 ANNO_COLOR = "#464646"
 
 EPS = 0.000000001
-MAN_BINS = [-EPS, 10, 15, 20, 100 + EPS]
-RES_BINS = [-EPS, 5, 10, 25, 100 + EPS]
+MAN_BINS = [-EPS, 10, 20, 100 + EPS]
+RES_BINS = [-EPS, 6, 12, 100 + EPS]
 
 OLDER_DATA = [  # Manufacturing, resources
     ("VEN", "Venezuela", 12.0, 11.8),
@@ -84,7 +84,7 @@ def assign_bivariate_class(row, man_bins, res_bins):
     """Assign a bivariate class (0-15) based on discretized values."""
     man_cat = np.digitize(row['Manufacturing_pct'], man_bins)
     res_cat = np.digitize(row['ResourceRents_pct'], res_bins)
-    return (man_cat - 1) * 4 + (res_cat - 1)  # Classes 0-15
+    return (man_cat - 1) * 3 + (res_cat - 1)  # Classes 0-15
 
 def create_legend(ax, colors, man_bins, res_bins):
     """Create a 3x3 bivariate legend grid with ranges labeled inside each cell."""
@@ -104,7 +104,7 @@ def create_legend(ax, colors, man_bins, res_bins):
     for i in range(res_length):
         for j in range(man_length):
             color_idx = i * res_length + j
-            legend_ax.add_patch(plt.Rectangle((j, 3-i), 1, 1, facecolor=colors[color_idx], edgecolor='white'))
+            legend_ax.add_patch(plt.Rectangle((j, res_length-1-i), 1, 1, facecolor=colors[color_idx], edgecolor='white'))
 
     # Add column labels (top)
     for j, label in enumerate(labels[0]):
