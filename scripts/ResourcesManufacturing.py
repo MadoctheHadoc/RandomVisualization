@@ -19,13 +19,11 @@ COLORS = [
     "#b0d5df", "#ad9ea5", "#985356",
     "#64acbe", "#627f8c", "#574249",
 ]
-# COLORS = [
-#     "#e8e8e8", "#ddb9b9", "#d38a8a", "#c85a5a",
-#     "#bdd4da", "#b2a8ae", "#aa7d82", "#a15256",
-#     "#91c0cc", "#8998a3", "#83717b", "#7c4a53",
-#     "#64acbe", "#608898", "#5b6574", "#574249",
-# ]
 ANNO_COLOR = "#464646"
+BAR_COLORS = ["#d7d7d7", COLORS[6], COLORS[2]]
+BAR_VALUES = [0.832, 0.15, 0.018]
+
+WORLD_URL = "https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json"
 
 EPS = 0.000000001
 MAN_BINS = [-EPS, 10, 20, 100 + EPS]
@@ -63,7 +61,10 @@ def fetch_world_bank_data():
     df_wb['ISO3'] = df_wb['ISO3'].astype(str)
     
     # --- Manually add 2014 data for some countries ---
-    df_wb = pd.concat([df_wb, pd.DataFrame(OLDER_DATA, columns=df_wb.columns)], ignore_index=True)   
+    df_manual = pd.DataFrame(OLDER_DATA, columns=df_wb.columns)
+    # Avoid duplicates: replace if ISO3 already exists
+    df_wb = df_wb[~df_wb['ISO3'].isin(df_manual['ISO3'])]
+    df_wb = pd.concat([df_wb, df_manual], ignore_index=True)   
     df_wb.to_pickle(CACHE_FILE)
     return df_wb
 
@@ -93,7 +94,7 @@ def create_legend(fig, ax, colors, man_bins, res_bins):
         ax,
         width="100%",
         height="100%",
-        bbox_to_anchor=(0.35, 0.15, 0.15, 0.15),  # (x, y, width, height) in figure coordinates
+        bbox_to_anchor=(0.61, 0.265, 0.15, 0.15),  # (x, y, width, height) in figure coordinates
         bbox_transform=fig.transFigure,  # Use figure coordinates
     )
     
@@ -128,7 +129,7 @@ def create_legend(fig, ax, colors, man_bins, res_bins):
         xytext=(res_length + 0.1, man_length),  # Arrow base (start, moved further up)
         arrowprops=dict(arrowstyle='->', color=ANNO_COLOR, lw=1)
     )
-    legend_ax.text(man_length + 0.2, res_length / 2, "Manufacturing\n% of GDP",
+    legend_ax.text(man_length + 0.2, res_length / 2, "Manufacturing\n(% of GDP)",
                    va='center', ha='left', fontsize=10, color=ANNO_COLOR)
 
     # Rightward arrow (Natural Resource Rents, horizontal axis)
@@ -138,7 +139,7 @@ def create_legend(fig, ax, colors, man_bins, res_bins):
         xytext=(0, -0.1),  # Arrow base (start, moved further up)
         arrowprops=dict(arrowstyle='->', color=ANNO_COLOR, lw=1)
     )
-    legend_ax.text(man_length / 2, -0.2, "Natural Resource Rents\n% of GDP",
+    legend_ax.text(man_length / 2, -0.2, "Natural Resource Rents\n(% of GDP)",
                    va='top', ha='center', fontsize=10, color=ANNO_COLOR)
 
     # Axis limits and styling
@@ -147,27 +148,89 @@ def create_legend(fig, ax, colors, man_bins, res_bins):
     legend_ax.set_aspect('equal')
     legend_ax.axis('off')
 
+def create_bar(fig, ax, colors, values):
+    """Create a 3x3 bivariate legend grid with ranges labeled inside each cell."""
+    # Coordinates for a 3x3 grid
+    bar_ax = inset_axes(
+        ax,
+        width="100%",
+        height="100%",
+        bbox_to_anchor=(0.14, 0.135, 0.15, 0.18),  # (x, y, width, height) in figure coordinates
+        bbox_transform=fig.transFigure,  # Use figure coordinates
+    )
+
+    # Bar dimensions
+    bar_width = 0.1  # Width of the bar
+    text_gap = 0.02
+    
+    cumulative_height = 0  # Track the cumulative height of segments
+    for value, color in zip(values, colors):
+        # Draw the segment
+        rect = plt.Rectangle(
+            (0, cumulative_height),  # Lower-left corner
+            bar_width,  # Width of the bar
+            value,  # Height proportional to percentage
+            facecolor=color,
+            edgecolor='white',
+            linewidth=0.5
+        )
+        bar_ax.add_patch(rect)
+
+        # Add percentage label in the middle of the segment
+        segment_height = value
+        label_x = -text_gap
+        label_y = cumulative_height + segment_height / 2
+        bar_ax.text(
+            label_x, label_y,
+            f"{(value*100):.1f}%",
+            ha='right',
+            va='center',
+            fontsize=8,
+            color=ANNO_COLOR
+        )
+
+        # Update cumulative height
+        cumulative_height += segment_height
+
+    bar_ax.text(bar_width + text_gap, 1.0,
+                "Under 2% of global GDP is in\nnatural resource rents but\n" +
+                "these are concentrated in\npoorer countries\n\n" +
+                "Manufacturing is more\nprevalent in middle-income\n" +
+                "countries while high-income\ncountries have little of either\n\n" +
+                "Resource rents are not\nrepresentative of the entire\n" +
+                "resource contribution to the\neconomy unlike Manufacturing VA",
+                   va='top', ha='left', fontsize=8, color=ANNO_COLOR)
+
+    # Set axis limits to show the entire bar
+    bar_ax.set_xlim(0, 1)
+    bar_ax.set_ylim(0, 1)
+    bar_ax.set_aspect('equal')
+    bar_ax.axis('off')
+
 def annotate_map(ax):
     locations = [
         (-30, 45, False),
         (-8, 0, False),
         (126, 33, False),
-        (66, 2, False),
         (84, 41, True),
         (115, -32, True),
-        (-92, 6, False),
-        (60, 69, True)
+        (-92, 4, False),
+        (60, 69, True),
+        (-45, 17, False),
+        (125, 95, False)
     ]  # x, y coordinates for annotations
     
     labels = [
         "Europe and Northern America\nare service-based economies\nwith only some manufacturing",
         "Africa has many very\nextractive economies",
         "The Indo-Pacific has very\nfew natural resources but\nremains the world's factory",
-        "India & Pakistan lean more on\nservices and less on industry\nthan their neighbours",
-        "China is the largest\nmanufacturer in the world",
-        "Australia & Norway are\n(unsually) mature and\nextractive economies",
-        "Latin America is varied\nwith some manufacturing\nand some mineral extraction",
+        "China is the largest\nmanufacturer by far",
+        "Australia & Norway are\n(unsually) high-income\nand extractive economies",
+        "Latin America is very varied\nwith signficiant manufacturing\nand mineral extraction",
         "Petrostates like Russia, Iran and\nthe Gulf states can leverage their\ncheap energy to expand manufacturing",
+        "Outlined countries have data\nfrom years other than 2021",
+        "Visualization by MadoctheHadoc\nGDP Data: World Bank (2025)\n" +
+        "Map Data: Natural Earth (2025)\nGeoJSON conversion by Johan\n",
     ]
     
     multiplier = 100000
@@ -178,11 +241,11 @@ def annotate_map(ax):
                 color=('white' if white else ANNO_COLOR))
 
 def get_world_data(df_cleaned, projection_epsg):
-    world_url = "https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson"
-    world = gpd.read_file(world_url)
+    # Load modern GeoJSON
+    world = gpd.read_file(WORLD_URL)
 
     # Merge World Bank data
-    df_cleaned['iso_num'] = df_cleaned['ISO3'].apply(iso3_to_numeric)
+    # Might have to update 'id' with whatever print(world.columns comes up with)
     world_data = world.merge(df_cleaned, left_on='id', right_on='ISO3', how='left')
 
     # Fill NaN values
@@ -197,9 +260,14 @@ def get_world_data(df_cleaned, projection_epsg):
     world_data['Bivariate_Class'] = world_data.apply(
         lambda row: assign_bivariate_class(row, MAN_BINS, RES_BINS), axis=1
     )
+    
+    # Add a column to flag countries in OLDER_DATA
+    older_iso3 = [country[0] for country in OLDER_DATA]
+    world_data['is_older_data'] = world_data['ISO3'].isin(older_iso3)
 
     # Reproject to desired projection
     world_data = world_data.to_crs(projection_epsg)
+    
     return world_data
 
 def visualize(df_cleaned, projection_epsg="ESRI:54042"):
@@ -218,28 +286,42 @@ def visualize(df_cleaned, projection_epsg="ESRI:54042"):
                 ax=ax,
                 legend=False,
                 alpha=1.0,
+                linewidth=1.0,
                 edgecolor=ANNO_COLOR
             )
 
+    # Plot countries in OLDER_DATA with a thicker black outline
+    older_data_countries = world_data[world_data['is_older_data']]
+    older_data_countries.plot(
+        ax=ax,
+        color='none',  # No fill
+        edgecolor='black',  # Thick black outline
+        linewidth=1.0,  # Adjust thickness as needed
+        alpha=1.0
+    )
+
     # Add legend as a separate inset axis
     create_legend(fig, ax, COLORS, MAN_BINS, RES_BINS)
+
+    # Add visualization of overall economy
+    create_bar(fig, ax, BAR_COLORS, BAR_VALUES)
 
     # Annotations
     annotate_map(ax)
     
     # Main title
     ax.set_title('Are countries Making or Taking?',
-        fontsize=24, fontweight='bold', y=1.02)
+        fontsize=24, fontweight='bold', y=1.02, color=ANNO_COLOR)
 
     # Subtitle with different styling
     ax.text(
-        0.5, 1.0,
-        f'Manufacturing & Resource Extraction in {DATA_YEAR}',
+        0.5, 0.997,
+        f'Manufacturing Value Added and Natural Resource Rents in {DATA_YEAR}',
         fontsize=16, color=ANNO_COLOR, ha='center', transform=ax.transAxes
     )
     ax.axis('off')
 
-    ax.set_xlim(-11000000, 15000000)  # meters in Robinson projection
+    ax.set_xlim(-11000000, 14300000)  # meters in Robinson projection
     ax.set_ylim(-6500000, 9500000)    # cut off poles
 
     # Save
