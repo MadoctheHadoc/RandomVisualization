@@ -20,6 +20,7 @@ COLORS = [
     "#5ac8c8", "#5f96c3", "#6464be",
 ]
 ANNO_COLOR = "#464646"
+NO_DATA_COLOR = "#878787"
 BAR_COLORS = ["#d7d7d7", COLORS[6], COLORS[2]]
 BAR_VALUES = [0.832, 0.15, 0.018]
 
@@ -29,9 +30,13 @@ LARGE_ECONOMIES = [
     'CAN', 'BRA', 'CHN', 'DEU', 'ITA', 'FRA', 'USA', 'GBR', 'IND', 'JPN'
 ]
 
+MANUALLY_ADD = [
+    ('France', 'FRA'), ('Norway', 'NOR'), ('Kosovo', 'XKX'),
+]
+
 EPS = 0.000000001
-MAN_BINS = [-EPS, 10, 20, 100 + EPS]
-RES_BINS = [-EPS, 6, 12, 100 + EPS]
+MAN_BINS = [-EPS, 8, 20, 100 + EPS]
+RES_BINS = [-EPS, 3, 10, 100 + EPS]
 
 OLDER_DATA = [  # Manufacturing, resources
     ("VEN", "Venezuela", 12.0, 11.8),
@@ -292,7 +297,7 @@ def create_bar(fig, ax, colors, values):
     
     # Set axis limits to show the entire bar
     bar_ax.set_xlim(0, 1.1)
-    bar_ax.set_ylim(0, 0.2)
+    bar_ax.set_ylim(-0.01, 0.2)
     bar_ax.set_aspect('equal')
     bar_ax.axis('off')
 
@@ -332,44 +337,57 @@ def annotate_map(ax):
 def get_world_data(df_cleaned, projection_epsg):
     # Load modern GeoJSON
     world = gpd.read_file(WORLD_URL)
-    world.loc[world['name'] == 'France', 'ISO3166-1-Alpha-3'] = 'FRA'
-    world.loc[world['name'] == 'France', 'ISO3166-1-Alpha-2'] = 'FR'
-    # Merge World Bank data
-    # Might have to update 'id' with whatever print(world.columns comes up with)
+    for (name, code) in MANUALLY_ADD:
+        world.loc[world['name'] == name, 'ISO3166-1-Alpha-3'] = code
+
+    # Merge World Bank data, keeping all geometries
     world_data = world.merge(df_cleaned, left_on='ISO3166-1-Alpha-3', right_on='ISO3', how='left')
-    
-    # Fill NaN values
-    world_data['Manufacturing_pct'] = world_data['Manufacturing_pct'].fillna(0)
-    world_data['ResourceRents_pct'] = world_data['ResourceRents_pct'].fillna(0)
 
-    # Discretize into 3 categories
-    world_data['Manufacturing_cat'] = pd.cut(world_data['Manufacturing_pct'], bins=MAN_BINS, labels=False)
-    world_data['ResourceRents_cat'] = pd.cut(world_data['ResourceRents_pct'], bins=RES_BINS, labels=False)
+    # Assign -1 to missing data
+    world_data['Manufacturing_pct'] = world_data['Manufacturing_pct'].fillna(-1)
+    world_data['ResourceRents_pct'] = world_data['ResourceRents_pct'].fillna(-1)
 
-    # Assign bivariate class
-    world_data['Bivariate_Class'] = world_data.apply(
-        lambda row: assign_bivariate_class(row, MAN_BINS, RES_BINS), axis=1
+    # Discretize into 3 categories, but only for non-missing data
+    world_data['Manufacturing_cat'] = pd.cut(
+        world_data['Manufacturing_pct'],
+        bins=MAN_BINS,
+        labels=False
     )
-    
+    world_data['ResourceRents_cat'] = pd.cut(
+        world_data['ResourceRents_pct'],
+        bins=RES_BINS,
+        labels=False
+    )
+
+    # Assign -1 to missing data in the category columns
+    world_data.loc[world_data['Manufacturing_pct'] == -1, 'Manufacturing_cat'] = -1
+    world_data.loc[world_data['ResourceRents_pct'] == -1, 'ResourceRents_cat'] = -1
+
+    # Assign bivariate class, with -1 for missing data
+    world_data['Bivariate_Class'] = world_data.apply(
+        lambda row: -1 if row['Manufacturing_cat'] == -1 or row['ResourceRents_cat'] == -1
+        else assign_bivariate_class(row, MAN_BINS, RES_BINS),
+        axis=1
+    )
+
     world_data['is_large_economy'] = world_data['ISO3'].isin(LARGE_ECONOMIES)
-    
+
     # Add a column to flag countries in OLDER_DATA
     older_iso3 = [country[0] for country in OLDER_DATA]
     world_data['is_older_data'] = world_data['ISO3'].isin(older_iso3)
     world_data['in_opec'] = world_data['ISO3'].isin(OPEC_PLUS)
 
-
     # Reproject to desired projection
     world_data = world_data.to_crs(projection_epsg)
-    
+
     return world_data
 
 def visualize(df_cleaned, projection_epsg="ESRI:54042"):
-    """Create a bivariate choropleth map with a different projection, legend, and bin labels."""
+    """Create a bivariate choropleth map with missing data colored in ANNO_COLOR."""
     world_data = get_world_data(df_cleaned, projection_epsg)
-
-    # Map class to colors
+    # Map class to colors, including missing data
     class_to_color = {i: COLORS[i] for i in range(len(COLORS))}
+    class_to_color[-1] = ANNO_COLOR  # Color for missing data
 
     # Plot with explicit colors
     fig, ax = plt.subplots(figsize=(16, 10))
@@ -384,8 +402,18 @@ def visualize(df_cleaned, projection_epsg="ESRI:54042"):
                 edgecolor=ANNO_COLOR
             )
             
+    # Plot missing data
+    if -1 in world_data['Bivariate_Class'].values:
+        world_data[world_data['Bivariate_Class'] == -1].plot(
+            color=NO_DATA_COLOR,
+            ax=ax,
+            legend=False,
+            alpha=1.0,
+            linewidth=0.6,
+            edgecolor=ANNO_COLOR
+        )
 
-    # Plot countries in OLDER_DATA with a thicker black outline
+    # Plot countries in OPEC with a thicker black outline
     highlight_countries = world_data[world_data['in_opec']]
     highlight_countries.plot(
         ax=ax,
@@ -394,20 +422,16 @@ def visualize(df_cleaned, projection_epsg="ESRI:54042"):
         linewidth=1.0,  # Adjust thickness as needed
         alpha=1.0
     )
-
     # Add legend as a separate inset axis
     create_simplified_legend(fig, ax, COLORS, MAN_BINS, RES_BINS)
-
     # Add visualization of overall economy
     create_bar(fig, ax, BAR_COLORS, BAR_VALUES)
-
     # Annotations
     annotate_map(ax)
-    
+
     # Main title
     ax.set_title('Making or Taking?',
         fontsize=24, fontweight='bold', x=0.03, y=1.14, ha='left', color=ANNO_COLOR)
-
     # Subtitle with different styling
     ax.text(
         x=0.03, y=1.11,
@@ -415,10 +439,8 @@ def visualize(df_cleaned, projection_epsg="ESRI:54042"):
         fontsize=15, color=ANNO_COLOR, ha='left', transform=ax.transAxes
     )
     ax.axis('off')
-
     ax.set_xlim(-11000000, 14300000)  # meters in Robinson projection
     ax.set_ylim(-6500000, 9500000)    # cut off poles
-
     # Save
     output_path = f'visualizations/ManufacturingResourceExtraction{DATA_YEAR}.png'
     plt.savefig(output_path, dpi=500, bbox_inches='tight', facecolor='white', edgecolor='none')
