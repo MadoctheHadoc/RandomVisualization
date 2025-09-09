@@ -39,6 +39,11 @@ YUGOSLAV_COLORS = [
     "#8fbb4c"               # Kosovo
 ]
 
+IRISH_COLORS = [
+    "#126508", "#36a22a", "#197c0e",  # Rep. of Ireland
+    "#653308", "#a2742a", "#7c520e",  # N. Ireland
+]
+
 # ==================== DATA ====================
 
 YUGOSLAV_POPULATIONS = [
@@ -106,6 +111,15 @@ SCANDINAVIAN_POPULATIONS = [
     {'countries': 'Denmark', 'population': 6001008, 'cities': [
         ('Copenhagen', 2135634)
     ]}
+]
+
+IRISH_POPULATIONS = [
+    {'countries': 'Rep. of Ireland', 'population': 5380300, 'cities': [
+        ('Dublin', 2082575), ('Cork', 406785)
+    ]},
+    {'countries': 'N. Ireland', 'population': 1910543, 'cities': [
+        ('Belfast', 671559), ('Derry', 237000)
+    ]},
 ]
 
 # ==================== FUNCTIONS ====================
@@ -280,12 +294,14 @@ def plot_population_chart(populations, colors, filename, people):
 
 # ==================== EXECUTE ====================
 if __name__ == "__main__":
-    plot_population_chart(
-        SCANDINAVIAN_POPULATIONS, SCANDINAVIAN_COLORS, 'Scandinavia', 'Scandinavians')
+    # plot_population_chart(
+    #     SCANDINAVIAN_POPULATIONS, SCANDINAVIAN_COLORS, 'Scandinavia', 'Scandinavians')
     # plot_population_chart(
     #     BALTIC_POPULATIONS, BALTIC_COLORS, 'Baltic', 'Baltic People')
     # plot_population_chart(
     #     BENELUX_POPULATIONS, BENELUX_COLORS, 'Benelux', 'Benelux People')
     # plot_population_chart(
     #     YUGOSLAV_POPULATIONS, YUGOSLAV_COLORS, 'WestBalkan', 'West Balkan People')
+    plot_population_chart(
+        IRISH_POPULATIONS, IRISH_COLORS, 'Irish', 'Irish People')
 
