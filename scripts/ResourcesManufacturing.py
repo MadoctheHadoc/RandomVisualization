@@ -199,27 +199,27 @@ def create_simplified_legend(fig, ax, colors, man_bins, res_bins):
     man_length = len(man_bins) - 1
 
     # Draw colored squares
-    for i in range(res_length):
+    for i in range(res_length-1, -1, -1):
         for j in range(man_length):
             color_idx = i * man_length + j
-            legend_ax.add_patch(plt.Rectangle((j, res_length-1-i), 1, 1, facecolor=colors[color_idx], edgecolor='white'))
+            legend_ax.add_patch(plt.Rectangle((j, i), 1, 1, facecolor=colors[color_idx], edgecolor='white'))
 
     # Define the labels and positions for each corner
     smol = 0.03
     corners = [
-        {"label": "low manufacturing\nlow resource extraction",
+        {"label": "high manufacturing\nlow resource extraction",
          "xy": (-smol, res_length + smol),
          "xytext": (-1.0, res_length + 0.5),
          "ha": 'right'},
-        {"label": "low manufacturing\nhigh resource extraction",
+        {"label": "high manufacturing\nhigh resource extraction",
          "xy": (man_length + smol, res_length + smol),
          "xytext": (man_length + 1.0, res_length - 0.8),
          "ha": 'left'},
-        {"label": "high manufacturing\nlow resource extraction",
+        {"label": "low manufacturing\nlow resource extraction",
          "xy": (smol, -smol),
          "xytext": (-1.4, 0.8),
          "ha": 'right'},
-        {"label": "high manufacturing\nhigh resource extraction",
+        {"label": "low manufacturing\nhigh resource extraction",
          "xy": (man_length + smol, smol),
          "xytext": (man_length - 0.4, -0.9),
          "ha": 'left'}
