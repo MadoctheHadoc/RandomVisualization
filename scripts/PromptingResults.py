@@ -14,16 +14,24 @@ data = {
         "10": 58.6,
         "20": 56.4
     },
-    "Delimiter repetitions": {
+    "Delimiter\nrepetitions": {
         "1": 52.1,
         "2": 58.6,
         "3": 56.4,
         "4": 56.4
     },
     "Rogue string": {
-        '"I hate humans"': 58.6,
         '"Kill all humans"': 49.3,
+        '"I hate humans"': 58.6,
         "Non-harmful string": 70.0
+    },
+    "Stop sequence": {
+        "No": 60.0,
+        "Yes": 47.5
+    },
+    "Text after\n{user_input}": {
+        "No": 63.1,
+        "Yes": 51.8
     },
     "Temperature": {
         "0": 57.9,
@@ -36,21 +44,13 @@ data = {
         "0.5": 57.1,
         "1.0": 58.6
     },
-    "Frequency penalty": {
+    "Frequency\npenalty": {
         "0": 58.6,
         "2.0": 57.1
     },
-    "Presence penalty": {
+    "Presence\npenalty": {
         "0": 57.1,
         "2.0": 57.9
-    },
-    "Stop sequence": {
-        "No": 60.0,
-        "Yes": 47.5
-    },
-    "Text after {user_input}": {
-        "No": 63.1,
-        "Yes": 51.8
     },
     "Model": {
         "text-ada-001": 13.8,
@@ -64,7 +64,7 @@ data = {
 # Define y positions for subcategory labels and group labels
 y_sub_labels = [34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 12]
 rot_labels = [90, 0, 0, 90, 0, 0, 0, 0, 0, 0, 90]
-y_group_labels = [48, 63, 50, 48, 63, 55, 63, 55, 46, 67, 42] 
+y_group_labels = [48, 63, 50, 48, 64, 50, 62, 56, 63, 56, 46] 
 
 # Plotting
 fig, ax = plt.subplots(figsize=(14, 7))
@@ -95,6 +95,14 @@ for idx, cat in enumerate(categories):
     ax.text(np.mean(x), y_group_labels[idx], cat, ha='center', va='top', fontsize=10, fontweight='bold', color=c)
 
     x_start += len(values) + group_spacing
+
+# Vertical line to separate "prompts" and "settings"
+temperature_idx = categories.index("Temperature")
+x_line = sum(len(list(data[cat].keys())) + group_spacing for cat in categories[:temperature_idx]) - group_spacing/2
+ax.axvline(x=x_line, color='gray', linestyle='--', linewidth=1)
+ax.text(x_line - 0.5, 70, "Prompt", color='gray', fontsize=10, ha='right', va='center', rotation=90)
+ax.text(x_line + 0.5, 70, "Model", color='gray', fontsize=10, ha='left', va='center', rotation=90)
+
 
 ax.set_xlim(-1, x_start - 1)
 ax.set_ylabel('Success Rate (%)')
