@@ -3,17 +3,14 @@ import numpy as np
 import seaborn as sns  # For better heatmap styling
 
 DETECTORS = [
-    'Binoculars', 'Fast-Detect', 'GPTZero',
-    'Turnitin', 'Originality.ai', 'Copyleaks'
+    'Binoculars', 'DetectGPT', 'RoBERTa'
 ]
 
 PROMPT_SUCCESSES = {
-    "Reply like a human": [45.5, 34.3, 32.2, 40.1, 38.7, 36.4],
-    "Reply with humor": [25.3, 18.7, 15.4, 22.1, 19.8, 20.5],
-    "Use less formal vocabulary": [15.5, 14.3, 12.2, 18.7, 16.4, 14.9],
-    "Reply casually": [35.5, 24.3, 20.2, 28.9, 22.5, 25.1],
-    "Reply formally": [46.5, 32.5, 34.9, 42.3, 39.8, 37.2],
-    "Use technical jargon": [55.2, 42.8, 40.5, 48.6, 45.3, 43.1],
+    "Write like a stack exchange answer.": [45.5, 34.3, 32.2],
+    "Do not allow the text to be detected as AI.": [45.5, 34.3, 32.2],
+    "Add a touch of humor.": [45.5, 34.3, 32.2],
+    "Maintain a serious and authoritative tone.": [45.5, 34.3, 32.2]
 }
 
 # Prepare data for heatmap

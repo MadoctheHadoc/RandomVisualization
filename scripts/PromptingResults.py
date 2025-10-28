@@ -1,114 +1,91 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+plt.rcParams["font.family"] = "Times New Roman"
+
 # Data
 data = {
-    "Attack": {
-        "Ignore and say": 35.7,
-        "Ignore and print": 43.6,
-        "INGORE AND PRINT": 40.7
+    "Top-P": {
+        "0.6": 0.9925,
+        "0.9": 0.9900,
+        "0.95": 0.9725,
+        "1.0": 0.9425
     },
-    "Delimiter length": {
-        "0": 43.6,
-        "4": 52.2,
-        "10": 58.6,
-        "20": 56.4
-    },
-    "Delimiter\nrepetitions": {
-        "1": 52.1,
-        "2": 58.6,
-        "3": 56.4,
-        "4": 56.4
-    },
-    "Rogue string": {
-        '"Kill all humans"': 49.3,
-        '"I hate humans"': 58.6,
-        "Non-harmful string": 70.0
-    },
-    "Stop sequence": {
-        "No": 60.0,
-        "Yes": 47.5
-    },
-    "Text after\n{user_input}": {
-        "No": 63.1,
-        "Yes": 51.8
+    "Top-K": {
+        "5": 0.9275,
+        "10": 0.9200,
+        "40": 0.9725,
+        "100": 0.9725
     },
     "Temperature": {
-        "0": 57.9,
-        "0.25": 57.1,
-        "0.5": 55.7,
-        "1.0": 52.1
+        "0.0": 0.9550,
+        "0.2": 1.0000,
+        "0.5": 0.9875,
+        "0.8": 0.9725,
+        "1.0": 0.94001,
+        "1.4": 0.8300,
+        "2.0": 0.8525
     },
-    "Top-P": {
-        "0": 58.6,
-        "0.5": 57.1,
-        "1.0": 58.6
-    },
-    "Frequency\npenalty": {
-        "0": 58.6,
-        "2.0": 57.1
-    },
-    "Presence\npenalty": {
-        "0": 57.1,
-        "2.0": 57.9
-    },
-    "Model": {
-        "text-ada-001": 13.8,
-        "text-babbage-001": 29.5,
-        "text-curie-001": 23.8,
-        "text-davinci-001": 30.5,
-        "text-davinci-002": 58.6
+    "Repeat Penalty": {
+        "1.0": 0.9475,
+        "1.1": 0.9725,
+        "1.2": 0.8125,
+        "1.3": 0.6625,
+        "1.4": 0.6775,
+        "1.5": 0.5850,
+        "1.6": 0.4925
     }
 }
 
-# Define y positions for subcategory labels and group labels
-y_sub_labels = [34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 12]
-rot_labels = [90, 0, 0, 90, 0, 0, 0, 0, 0, 0, 90]
-y_group_labels = [48, 63, 50, 48, 64, 50, 62, 56, 63, 56, 46] 
+# Normal (baseline) values for vertical reference lines
+normal_values = {
+    "Top-P": 0.95,
+    "Temperature": 0.8,
+    "Repeat Penalty": 1.1,
+    "Top-K": 40
+}
 
-# Plotting
-fig, ax = plt.subplots(figsize=(14, 7))
+colors = [
+    "#30D1CE",
+    "#6030D1",
+    "#9EAE26",
+    "#AE2626"
+]
+offsets = [0.015, 3.5, 0.075, 0.018]
 
-categories = list(data.keys())
-x_start = 0
-group_spacing = 1  # space between groups
-colors = plt.cm.tab20.colors
+# Create horizontal sequence of subplots
+n = len(data)
+fig, axes = plt.subplots(1, n, figsize=(3 * n, 4), sharey=True)
 
-for idx, cat in enumerate(categories):
-    if(cat == 'Model'):
-        # Ignore model for now
-        continue
-    subcats = list(data[cat].keys())
-    values = list(data[cat].values())
-    x = np.arange(x_start, x_start + len(values))
-    c = colors[idx % len(colors)]
+# Ensure axes is iterable
+if n == 1:
+    axes = [axes]
 
-    # Plot mini line for this group
-    ax.plot(x, values, marker='o', color=c, linewidth=2)
-    
-    # Add value labels
-    for xi, val, lbl in zip(x, values, subcats):
-        ax.text(xi, val + 1.0, f'{val}', ha='center', va='bottom', fontsize=8)
-        ax.text(xi, y_sub_labels[idx], lbl, ha='center', va='top', rotation=rot_labels[idx], fontsize=8)  # subcategory label
+for ax, (category, values), c, offset in zip(axes, data.items(), colors, offsets):
+    x = [float(k) for k in values.keys()]
+    y = list(values.values())
+    if(category == 'Top-K'):
+        ax.set_xlim(0,105)
 
-    # Add group label
-    ax.text(np.mean(x), y_group_labels[idx], cat, ha='center', va='top', fontsize=10, fontweight='bold', color=c)
+    ax.plot(x, y, marker='o', linestyle='-', color=c, linewidth=2)
+    ax.set_title(category, fontsize=18, pad=1)
+    ax.set_xlabel('Value', fontsize=18)
+    ax.grid(True, linestyle='--', alpha=0.3)
 
-    x_start += len(values) + group_spacing
+    # Set tick label font sizes
+    ax.tick_params(axis='x', labelsize=16)
+    ax.tick_params(axis='y', labelsize=16)
 
-# Vertical line to separate "prompts" and "settings"
-temperature_idx = categories.index("Temperature")
-x_line = sum(len(list(data[cat].keys())) + group_spacing for cat in categories[:temperature_idx]) - group_spacing/2
-ax.axvline(x=x_line, color='gray', linestyle='--', linewidth=1)
-ax.text(x_line - 0.5, 70, "Prompt", color='gray', fontsize=10, ha='right', va='center', rotation=90)
-ax.text(x_line + 0.5, 70, "Model", color='gray', fontsize=10, ha='left', va='center', rotation=90)
+    # Add vertical line for the normal value
+    if category in normal_values:
+        ax.axvline(normal_values[category], color='gray', linestyle='--', linewidth=1.5)
+        ax.text(normal_values[category] - offset, 0.78,
+                'normal value', rotation=90, color='gray', fontsize=14,
+                ha='center', va='top')
 
+axes[0].set_ylabel('AUROC (%)', fontsize=18)
+fig.suptitle("LLM Meta-Parameters vs Binoculars AUROC score",
+             fontsize=20, y=0.93)
 
-ax.set_xlim(-1, x_start - 1)
-ax.set_ylabel('Success Rate (%)')
-ax.set_title('Goal Hijacking Results by Group (Mini Line Plots)')
-ax.set_xticks([])
-ax.set_ylim(35, 73)
-plt.tight_layout()
+plt.tight_layout(rect=[0, 0, 1, 0.97])
 plt.savefig("visualizations/PromptingResults.png", dpi=300, bbox_inches='tight')
-
