@@ -14,16 +14,16 @@ colors = {
 
 # Data
 data = [
-    [2.759, 21.192, 8.732, 3.917],
-    [45.903]
+    [20800, 3360300, 2096800],
+    [17300, 2639200, 100960200, 268900]
 ]
 
-categories = ["Our Impl.", "Reference\nImpl."]
+categories = ["Unoptimized", "JIT-compiled"]
 
 # Labels for each data segment
 segment_labels = [
-    ["AST\nto\nOp", "BCI Creation", "Builtins", "Other"],
-    ["Total"]
+    ["AST\nto\nOp", "Builtins", "Execution"],
+    ["AST\nto\nOp", "Builtins", "JIT-Compilation", "Execution"],
 ]
 
 # Normalize lengths

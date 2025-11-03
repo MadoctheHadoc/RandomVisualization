@@ -40,15 +40,33 @@ benchmarks = {
     ]
 }
 
+benchmarks = {
+    "HuffmanEncoding": [
+        [4955957],
+        [2051524]],
+    "Permutation": [
+        [619662],
+        [638401]],
+    "RecursiveMatrix\nExponentiation": [
+        [6894824],
+        [4807624]],
+    "schemeInterpreter": [
+        [5356445],
+        [3577313]],
+    "SieveOfAtkin": [
+        [42894080],
+        [1546697]]
+    }
+
 # Categories for the legend
-categories = ["Our Impl.", "JIT Impl.", "Reference\nImpl."]
+categories = ["Our Impl.", "Reference\nImpl."]
 
 # Benchmark names and number of benchmarks
 benchmark_names = list(benchmarks.keys())
 num_benchmarks = len(benchmark_names)
 
 # Figure setup with shared y-axis
-fig, axes = plt.subplots(nrows=1, ncols=num_benchmarks, figsize=(12, 4), facecolor='white', sharey=True)
+fig, axes = plt.subplots(nrows=1, ncols=num_benchmarks, figsize=(12, 3), facecolor='white', sharey=True)
 
 # Add a big title for the entire figure
 fig.text(0.5, 0.97, "Time Comparison Across Benchmarks",
@@ -66,10 +84,7 @@ for i, (benchmark_name, data) in enumerate(benchmarks.items()):
     min_index = 0 if values[0] < values[1] else 1
 
     # Set default colors
-    bar_colors = [colors["LightGrey"], colors["LightGrey"], colors["SlateGrey"]]
-
-    # Highlight the faster one (among Our Impl. and JIT Impl.)
-    bar_colors[min_index] = colors["PastelRed"]
+    bar_colors = [colors["LightGrey"], colors["SlateGrey"]]
 
     # Plot all three bars
     bars = ax.barh(
