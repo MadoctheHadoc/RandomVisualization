@@ -3,11 +3,15 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+import geopandas as gpd
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
-# Add this near your color constants
-from matplotlib.colors import ListedColormap
 REGION_COLORS = plt.cm.tab20.colors  # Use a colormap with enough distinct colors
 
+# World map configuration
+WORLD_URL = "https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson"
+MAP_PROJECTION = "ESRI:54042"  # Robinson projection
+MAP_INSET_POSITION = (0.45, 0.5, 0.45, 0.30)  # (x, y, width, height) in figure coordinates
 
 # ==================== CONFIG ====================
 NUM_YEARS = 25  # Number of years to sum net migration
@@ -25,6 +29,11 @@ COLORS = {
     'positive': "#99C86B",  # Green for positive net migration
     'negative': "#FF6B6B",  # Red for negative net migration
 }
+
+# Manual country code corrections
+MANUALLY_ADD = [
+    ('France', 'FRA'), ('Norway', 'NOR'), ('Kosovo', 'XKX'),
+]
 
 # ==================== REGIONS ====================
 REGIONS = [
@@ -56,15 +65,6 @@ REGIONS = [
     {'name': 'Japan &\nS. Korea', 'countries': [
         'Korea, Rep.', 'Japan'
     ]},
-    # {'name': 'Sub-saharan\nAfrica', 'countries': [
-    #     'Nigeria', 'South Africa', 'Ethiopia', 'Kenya', 'Tanzania', 'Uganda', 'Ghana', 'Angola',
-    #     'Mozambique', "Cote d'Ivoire", 'Cameroon', 'Niger', 'Burkina Faso', 'Mali', 'Malawi',
-    #     'Zambia', 'Senegal', 'Zimbabwe', 'Rwanda', 'Benin', 'Chad', 'South Sudan', 'Togo',
-    #     'Sierra Leone', 'Liberia', 'Botswana', 'Namibia', 'Somalia, Fed. Rep.', 'Congo, Dem. Rep.', 'Congo, Rep.',
-    #     'Gabon', 'Guinea', 'Mauritania', 'Equatorial Guinea', 'Central African Republic', 'Lesotho',
-    #     'Eswatini', 'Djibouti', 'Eritrea', 'Gambia, The', 'Guinea-Bissau', 'Burundi', 'Cabo Verde',
-    #     'Comoros', 'Sao Tome and Principe', 'Seychelles'
-    # ]},
     {'name': 'West\nAfrica', 'countries': [
         'Nigeria', 'Ghana', "Cote d'Ivoire", 'Niger', 'Burkina Faso', 'Mali', 'Senegal',
         'Benin', 'Chad', 'Togo', 'Sierra Leone', 'Liberia', 'Guinea', 'Mauritania',
@@ -105,17 +105,18 @@ REGIONS = [
 SIMPLIFIED_REGIONS = [
     {'name': 'Western\nEurope', 'countries': [
         'Austria', 'Belgium', 'Cyprus', 'Denmark', 'Finland', 'France', 'Germany',
-        'Greece', 'Ireland', 'Italy', 'Luxembourg', 'Malta', 'Netherlands',
+        'Greece', 'Italy', 'Luxembourg', 'Malta', 'Netherlands',
         'Portugal', 'Spain', 'Sweden', 'Norway', 'Switzerland', 'Liechtenstein',
         'Iceland'
     ]},
-    {'name': ' Eastern\n Europe', 'countries': [
+    {'name': 'Eastern\nEurope', 'countries': [
         'Czechia', 'Latvia', 'Lithuania', 'Estonia', 'Hungary',
         'Poland', 'Romania', 'Slovak Republic', 'Slovenia', 'Bulgaria', 'Croatia',
         'Russian Federation', 'Ukraine', 'Belarus', 'Armenia', 'Georgia', 'Azerbaijan',
-        'Albania', 'Serbia', 'Bosnia and Herzegovina', 'North Macedonia', 'Montenegro', 'Moldova'
+        'Albania', 'Serbia', 'Bosnia and Herzegovina', 'North Macedonia', 'Montenegro',
+        'Moldova', 'Kosovo'
     ]},
-    {'name': 'USA & \nCANZUK    ', 'countries': ['United States', 'Canada', 'United Kingdom', 'Australia', 'New Zealand']},
+    {'name': 'Anglo\nSphere', 'countries': ['United States', 'Canada', 'United Kingdom', 'Australia', 'New Zealand', 'Ireland']},
     {'name': 'China', 'countries': ['China', 'Hong Kong SAR, China', 'Macao SAR, China']},
     {'name': 'South Asia', 'countries': [
         'India', 'Bangladesh', 'Bhutan', 'Nepal', 'Pakistan', 'Sri Lanka', 'Maldives'
@@ -127,14 +128,15 @@ SIMPLIFIED_REGIONS = [
     {'name': 'Japan &\nS. Korea', 'countries': [
         'Korea, Rep.', 'Japan'
     ]},
-    {'name': 'Sub-saharan\nAfrica', 'countries': [
+    {'name': 'Africa', 'countries': [
         'Nigeria', 'South Africa', 'Ethiopia', 'Kenya', 'Tanzania', 'Uganda', 'Ghana', 'Angola',
         'Mozambique', "Cote d'Ivoire", 'Cameroon', 'Niger', 'Burkina Faso', 'Mali', 'Malawi',
-        'Zambia', 'Senegal', 'Zimbabwe', 'Rwanda', 'Benin', 'Chad', 'South Sudan', 'Togo',
+        'Zambia', 'Senegal', 'Zimbabwe', 'Rwanda', 'Benin', 'Chad', 'South Sudan', 'Togo', 'Sudan'
         'Sierra Leone', 'Liberia', 'Botswana', 'Namibia', 'Somalia, Fed. Rep.', 'Congo, Dem. Rep.', 'Congo, Rep.',
         'Gabon', 'Guinea', 'Mauritania', 'Equatorial Guinea', 'Central African Republic', 'Lesotho',
         'Eswatini', 'Djibouti', 'Eritrea', 'Gambia, The', 'Guinea-Bissau', 'Burundi', 'Cabo Verde',
-        'Comoros', 'Sao Tome and Principe', 'Seychelles'
+        'Comoros', 'Sao Tome and Principe', 'Seychelles', 'Madagascar',
+        'Egypt, Arab Rep.', 'Libya', 'Morocco', 'Algeria', 'Tunisia'
     ]},
     {'name': 'Mid.\nEast', 'countries': [
         'Saudi Arabia', 'Iran, Islamic Rep.', 'Iraq', 'Israel', 'Jordan', 'Lebanon', 'Oman', 'Qatar',
@@ -145,7 +147,7 @@ SIMPLIFIED_REGIONS = [
         'Argentina', 'Bolivia', 'Brazil', 'Chile', 'Colombia', 'Costa Rica', 'Cuba',
         'Dominican Republic', 'Ecuador', 'El Salvador', 'Guatemala', 'Honduras',
         'Mexico', 'Nicaragua', 'Panama', 'Paraguay', 'Peru', 'Uruguay', 'Venezuela, RB',
-        'Haiti', 'Jamaica', 'Trinidad and Tobago', 'Belize'
+        'Haiti', 'Jamaica', 'Trinidad and Tobago', 'Belize', 'Guyana', 'Suriname'
     ]}
 ]
 
@@ -216,7 +218,122 @@ def aggregate_net_migration(df, regions):
     
     return df_sum
 
-def plot_net_migration(df):
+def create_region_country_mapping(regions):
+    """Create a dictionary mapping country names to region indices."""
+    country_to_region = {}
+    for i, region in enumerate(regions):
+        for country in region['countries']:
+            country_to_region[country] = i
+    return country_to_region
+
+def create_iso3_to_region_mapping(regions):
+    """Create a dictionary mapping ISO3 codes to region indices using wbdata metadata."""
+    # Get World Bank country metadata
+    countries = wbdata.get_countries()
+    
+    # Create name to ISO3 mapping
+    name_to_iso3 = {}
+    for c in countries:
+        name_to_iso3[c["name"]] = c["id"]
+    
+    # Create ISO3 to region mapping
+    iso3_to_region = {}
+    for i, region in enumerate(regions):
+        for country_name in region['countries']:
+            if country_name in name_to_iso3:
+                iso3_to_region[name_to_iso3[country_name]] = i
+    
+    return iso3_to_region
+
+def get_world_map_data(regions, projection_epsg):
+    """Load world map and assign region colors."""
+    world = gpd.read_file(WORLD_URL)
+    
+    # Add manual corrections
+    for (name, code) in MANUALLY_ADD:
+        world.loc[world['name'] == name, 'ISO3166-1-Alpha-3'] = code
+    
+    # Create mapping from ISO3 to region index
+    iso3_to_region = create_iso3_to_region_mapping(regions)
+    
+    # Map ISO3 codes to region indices
+    world['RegionIndex'] = -1  # Default for countries not in any region
+    
+    # Use ISO3 codes for matching
+    if 'ISO3166-1-Alpha-3' in world.columns:
+        for iso3, region_idx in iso3_to_region.items():
+            world.loc[world['ISO3166-1-Alpha-3'] == iso3, 'RegionIndex'] = region_idx
+    
+    # Reproject to desired projection
+    world = world.to_crs(projection_epsg)
+    
+    return world
+
+def add_world_map_inset(fig, ax, df_sorted, regions, position=MAP_INSET_POSITION):
+    """Add a world map inset showing regions in their assigned colors."""
+    # Create inset axis
+    map_ax = inset_axes(
+        ax,
+        width="100%",
+        height="100%",
+        bbox_to_anchor=position,
+        bbox_transform=fig.transFigure,
+    )
+    
+    # Load and prepare world map data
+    world_data = get_world_map_data(regions, MAP_PROJECTION)
+    
+    # Create a mapping from region name to its sorted position (and thus color)
+    region_to_color_idx = {}
+    for i, (_, row) in enumerate(df_sorted.iterrows()):
+        region_to_color_idx[row['Region']] = i
+    
+    # Create a mapping from original region index to color index
+    region_idx_to_color = {}
+    for i, region in enumerate(regions):
+        region_name = region['name']
+        if region_name in region_to_color_idx:
+            region_idx_to_color[i] = region_to_color_idx[region_name]
+    
+    # Plot each region with its corresponding color
+    for region_idx in range(len(regions)):
+        region_countries = world_data[world_data['RegionIndex'] == region_idx]
+        if not region_countries.empty and region_idx in region_idx_to_color:
+            color_idx = region_idx_to_color[region_idx]
+            region_countries.plot(
+                ax=map_ax,
+                color=REGION_COLORS[color_idx % len(REGION_COLORS)],
+                linewidth=0,  # No borders between countries
+                edgecolor='none'
+            )
+    
+    # Plot countries not in any region in gray
+    other_countries = world_data[world_data['RegionIndex'] == -1]
+    if not other_countries.empty:
+        other_countries.plot(
+            ax=map_ax,
+            color='#404040',
+            linewidth=0,
+            edgecolor='none'
+        )
+    
+    # Style the map
+    map_ax.axis('off')
+    map_ax.set_xlim(-11000000, 14300000)
+    map_ax.set_ylim(-6500000, 9500000)
+    
+    # Add white border around the inset
+    for spine in map_ax.spines.values():
+        spine.set_visible(True)
+        spine.set_color('white')
+        spine.set_linewidth(2)
+    
+    # Ensure the inset is rendered on top
+    map_ax.set_zorder(1000)
+    
+    return map_ax
+
+def plot_net_migration(df, regions):
     """
     Vertical bars, width scaled by population, labels above/below bars.
     """
@@ -286,8 +403,8 @@ def plot_net_migration(df):
             label_y = line_y + text_gap
             va = "bottom"
             
-        # if(row['Region'] == 'Japan &\nS. Korea'):
-        #     label_y = line_y - 0.3
+        if(row['Region'] == 'Japan &\nS. Korea'):
+            label_y = line_y - 0.3
         
         # Width line
         ax.plot(
@@ -329,6 +446,10 @@ def plot_net_migration(df):
     for spine in ax.spines.values():
         spine.set_visible(False)
 
+    # ---- Add world map inset (pass the sorted dataframe) ----
+    df_for_map = df.copy()  # df is already sorted at this point
+    add_world_map_inset(fig, ax, df_for_map, regions, position=MAP_INSET_POSITION)
+
     plt.tight_layout()
     if (MOBILE):
         plt.savefig(f"visualizations/NetMigrationRate_{NUM_YEARS}Years_MOBILE.png", dpi=300, bbox_inches='tight')
@@ -348,9 +469,11 @@ if __name__ == "__main__":
     else:
         df_agg = aggregate_net_migration(df, REGIONS)
         
-    
     print('\nRegion Summary:')
     print(df_agg[['Region', 'Population', 'NetMigration', 'NetMigrationRate']].to_string())
     
     print('\nRendering...')
-    plot_net_migration(df_agg)
+    if (MOBILE):
+        plot_net_migration(df_agg, SIMPLIFIED_REGIONS)
+    else:
+        plot_net_migration(df_agg, REGIONS)
