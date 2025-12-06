@@ -48,8 +48,8 @@ class Perlin2D:
 
 def manipulate_noise(x, y):
     # --- warp settings ---
-    warp_frequency = 0.3      # how fast the warp changes
-    warp_strength = 50        # how much the warp distorts coordinates
+    warp_frequency = 0.4      # how fast the warp changes
+    warp_strength = 150        # how much the warp distorts coordinates
 
     # Sample warp vector
     wx = sampler.sample(x * warp_frequency, y * warp_frequency)
@@ -70,7 +70,7 @@ def manipulate_noise(x, y):
 
 # Create sampler
 w = h = 300
-sampler = Perlin2D(scale=40, width=w, height=h)
+sampler = Perlin2D(scale=50, width=w, height=h)
 
 # Sample pixels individually
 img = np.zeros((h, w))
