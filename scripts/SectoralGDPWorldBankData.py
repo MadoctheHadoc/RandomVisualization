@@ -116,7 +116,7 @@ REGIONS = [
         'Korea, Rep.', 'Japan'
     ]},
     {'name': 'Africa', 'countries': [
-        'Nigeria', 'South Africa', 'Ethiopia', 'Kenya', 'Tanzania', 'Uganda', 'Ghana', 'Angola',
+        'Nigeria', 'South Africa', 'Kenya', 'Tanzania', 'Uganda', 'Ghana', 'Angola',
         'Mozambique', "Cote d'Ivoire", 'Cameroon', 'Niger', 'Burkina Faso', 'Mali', 'Malawi',
         'Zambia', 'Senegal', 'Zimbabwe', 'Rwanda', 'Benin', 'Chad', 'South Sudan', 'Togo',
         'Sierra Leone', 'Liberia', 'Botswana', 'Namibia', 'Somalia', 'Congo, Dem. Rep.', 'Congo, Rep.',
