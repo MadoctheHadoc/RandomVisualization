@@ -80,13 +80,6 @@ default_values = {
     "LR": 0.1,
 }
 
-offsets = {
-    "Sigma": 0.12,
-    "Gamma": 0.18,
-    "Epsilon": 0.06,
-    "LR": 0.006,
-}
-
 colors = {
     "ValIt": "#30D1CE",
     "SARSA": "#6030D1",
@@ -99,69 +92,51 @@ markers = {
     "MC": "o",
 }
 
-log_scale_categories = {"Gamma"} # list of variables to plot with logs
 
 categories = ["Sigma", "Gamma", "Epsilon", "LR"]
 grids = ["A1", "Large Grid", "Super Hard"]
- 
+
 n_rows = len(grids)
 n_cols = len(categories)
- 
+
 fig, axes = plt.subplots(n_rows, n_cols, figsize=(3 * n_cols, 3.5 * n_rows), sharey=True)
- 
+
 for row, grid in enumerate(grids):
     for col, category in enumerate(categories):
         ax = axes[row, col]
- 
+
         for algo in ["ValIt", "SARSA", "MC"]:
             param_dict = data[grid][algo][category]
-            x = [float(k) for k in param_dict.keys()]
+            x = list(param_dict.keys())  # Use keys as categorical labels
             y = list(param_dict.values())
- 
-            ax.plot(x, y, marker=markers[algo], linestyle='-',
+
+            ax.plot(range(len(x)), y, marker=markers[algo], linestyle='-',
                     color=colors[algo], linewidth=2, markersize=7, label=algo)
- 
+
+        # Set x-axis ticks to show all categorical labels
+        ax.set_xticks(range(len(x)))
+        ax.set_xticklabels(x, fontsize=12)
+
         ax.grid(True, linestyle='--', alpha=0.3)
         ax.tick_params(axis='x', labelsize=14)
         ax.tick_params(axis='y', labelsize=14)
- 
-        # Apply log scale with readable tick labels
-        if category in log_scale_categories:
-            ax.set_xscale('log')
-            # Collect all unique x values for this category across algorithms
-            tick_vals = sorted(set(
-                float(k)
-                for algo in ["ValIt", "SARSA", "MC"]
-                for k in data[grid][algo][category].keys()
-            ))
-            ax.set_xticks(tick_vals)
-            # Format labels: show integers where possible, otherwise decimals
-            ax.set_xticklabels([
-                f'{v:g}' for v in tick_vals
-            ])
-            from matplotlib.ticker import NullFormatter
-            ax.xaxis.set_minor_formatter(NullFormatter())
- 
+
         # Add vertical line for the default value
         if category in default_values:
-            ax.axvline(default_values[category], color='gray', linestyle='--', linewidth=1.5)
-            # For log-scale axes, use multiplicative offset; for linear, additive
-            if category in log_scale_categories:
-                text_x = default_values[category] * (1 - offsets[category])
-            else:
-                text_x = default_values[category] - offsets[category]
-            ax.text(text_x, ax.get_ylim()[0] + 0.02,
-                    'default value', rotation=90, color='gray', fontsize=12,
-                    ha='right', va='bottom')
- 
+            default_x = str(default_values[category])
+            if default_x in x:
+                default_idx = x.index(default_x)
+                ax.axvline(default_idx, color='gray', linestyle='--', linewidth=1.5)
+                # ax.text(default_idx - 0.5, ax.get_ylim()[0] + 0.02, 'default value', rotation=90, color='gray', fontsize=12, ha='right', va='bottom')
+
         # Column titles on top row only
         if row == 0:
             ax.set_title(category, fontsize=18, pad=6)
- 
+
         # X-axis labels on bottom row only
         if row == n_rows - 1:
             ax.set_xlabel('Value', fontsize=16)
- 
+
         # Row labels on leftmost column
         if col == 0:
             ax.set_ylabel(f'{grid}\nPerformance', fontsize=16)
