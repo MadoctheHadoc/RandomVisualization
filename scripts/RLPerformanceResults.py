@@ -12,44 +12,44 @@ data = {
             "Gamma": {
                 "0.7": 1.0000,
                 "0.8": 1.0000,
-                "0.95": 1.0000,
+                "0.9": 1.0000,
                 "0.99": 1.0000,
                 "0.999": 1.0000,
                 "0.99999": 1.0000,
             },
-            "Epsilon": {"0.0": 1.0000, "0.2": 1.0000, "0.5": 1.0000},
-            "LR": {"0.01": 1.0000, "0.1": 1.0000, "0.3": 1.0000, "0.5": 1.0000, "0.7": 1.0000},
-            "Step Ratio": {"0.5": 1.0000, "1": 1.0000, "4": 1.0000},
+            "Epsilon": {"0.0": None, "0.2": None, "0.5": None},
+            "LR": {"0.01": None, "0.1": None, "0.3": None, "0.5": None, "0.7": None},
+            "Step Ratio": {"0.5": None, "1": None, "4": None},
         },
         "SARSA": {
-            "Default": {"-": 1.1714},
-            "Sigma": {"0.0": 1.0000, "0.2": 1.3571, "0.3": 1.2143},
+            "Default": {"-": 1.0476},
+            "Sigma": {"0.0": 1.0000, "0.2": 1.0714, "0.3": 1.2857},
             "Gamma": {
                 "0.7": 1.1429,
                 "0.8": 1.0714,
-                "0.95": 1.0714,
+                "0.9": 1.2143,
                 "0.99": 1.0000,
                 "0.999": None,
                 "0.99999": None,
             },
-            "Epsilon": {"0.0": 1.2143, "0.2": 1.0000, "0.5": None},
-            "LR": {"0.01": None, "0.1": None, "0.3": 1.0000, "0.5": None, "0.7": None},
-            "Step Ratio": {"0.5": None, "1": 1.2857, "4": 1.1429},
+            "Epsilon": {"0.0": 1.1429, "0.2": 1.2143, "0.5": 1.1429},
+            "LR": {"0.01": None, "0.1": 1.0000, "0.3": 1.0000, "0.5": 1.3571, "0.7": None},
+            "Step Ratio": {"0.5": 1.0714, "1": 1.0714, "4": 1.0714},
         },
         "Monte Carlo On-Policy": {
-            "Default": {"-": 2.3714},
-            "Sigma": {"0.0": 1.3643, "0.2": 6.5982, "0.3": 6.7964},
+            "Default": {"-": 2.5584},
+            "Sigma": {"0.0": 1.4232, "0.2": 5.0321, "0.3": 14.0946},
             "Gamma": {
-                "0.7": 1.6643,
-                "0.8": 1.6607,
-                "0.95": 1.8357,
+                "0.7": 1.5571,
+                "0.8": 1.6107,
+                "0.9": 1.6429,
                 "0.99": None,
                 "0.999": None,
                 "0.99999": None,
             },
-            "Epsilon": {"0.0": None, "0.2": 1.4750, "0.5": 2.3321},
+            "Epsilon": {"0.0": None, "0.2": 3.0143, "0.5": 2.7679},
             "LR": {"0.01": None, "0.1": None, "0.3": None, "0.5": None, "0.7": None},
-            "Step Ratio": {"0.5": None, "1": 3.7268, "4": 2.4464},
+            "Step Ratio": {"0.5": None, "1": 3.4286, "4": 8.0179},
         },
     },
     "Large Grid": {
@@ -59,44 +59,44 @@ data = {
             "Gamma": {
                 "0.7": 1.0000,
                 "0.8": 1.0000,
-                "0.95": 1.0000,
+                "0.9": 1.0000,
                 "0.99": 1.0000,
                 "0.999": 1.0000,
                 "0.99999": 1.0000,
             },
-            "Epsilon": {"0.0": 1.0000, "0.2": 1.0000, "0.5": 1.0000},
-            "LR": {"0.01": 1.0000, "0.1": 1.0000, "0.3": 1.0000, "0.5": 1.0000, "0.7": 1.0000},
-            "Step Ratio": {"0.5": 1.0000, "1": 1.0000, "4": 1.0000},
+            "Epsilon": {"0.0": None, "0.2": None, "0.5": None},
+            "LR": {"0.01": None, "0.1": None, "0.3": None, "0.5": None, "0.7": None},
+            "Step Ratio": {"0.5": None, "1": None, "4": None},
         },
         "SARSA": {
-            "Default": {"-": 1.0952},
-            "Sigma": {"0.0": 1.1905, "0.2": 1.0000, "0.3": 1.1905},
+            "Default": {"-": 1.1333},
+            "Sigma": {"0.0": 1.1905, "0.2": 1.0000, "0.3": 1.0000},
             "Gamma": {
                 "0.7": 1.0000,
                 "0.8": 1.0000,
-                "0.95": 1.0000,
+                "0.9": 1.1905,
                 "0.99": 1.0000,
                 "0.999": 1.0000,
                 "0.99999": 1.1905,
             },
-            "Epsilon": {"0.0": 1.1905, "0.2": 1.0000, "0.5": 1.0000},
-            "LR": {"0.01": None, "0.1": 1.0000, "0.3": 1.0000, "0.5": 1.0000, "0.7": None},
-            "Step Ratio": {"0.5": 1.1905, "1": 1.1905, "4": 1.0000},
+            "Epsilon": {"0.0": 1.1905, "0.2": 1.0000, "0.5": 1.1905},
+            "LR": {"0.01": 1.0000, "0.1": 1.0000, "0.3": 1.1905, "0.5": 1.0000, "0.7": None},
+            "Step Ratio": {"0.5": 1.0000, "1": 1.0000, "4": 1.0000},
         },
         "Monte Carlo On-Policy": {
-            "Default": {"-": None},
-            "Sigma": {"0.0": None, "0.2": None, "0.3": 5.6405},
+            "Default": {"-": 3.1496},
+            "Sigma": {"0.0": 1.2762, "0.2": 2.8143, "0.3": None},
             "Gamma": {
                 "0.7": None,
-                "0.8": 3.4143,
-                "0.95": 2.2643,
-                "0.99": 7.0381,
+                "0.8": 4.0429,
+                "0.9": 3.7429,
+                "0.99": 2.4095,
                 "0.999": None,
                 "0.99999": None,
             },
-            "Epsilon": {"0.0": None, "0.2": 3.0595, "0.5": 2.6524},
+            "Epsilon": {"0.0": None, "0.2": 3.8524, "0.5": 1.5571},
             "LR": {"0.01": None, "0.1": None, "0.3": None, "0.5": None, "0.7": None},
-            "Step Ratio": {"0.5": None, "1": None, "4": None},
+            "Step Ratio": {"0.5": None, "1": 2.2095, "4": 2.3238},
         },
     },
     "Super Hard": {
@@ -106,51 +106,52 @@ data = {
             "Gamma": {
                 "0.7": None,
                 "0.8": None,
-                "0.95": 1.0000,
+                "0.9": 1.0000,
                 "0.99": 1.0000,
                 "0.999": 1.0000,
                 "0.99999": 1.0000,
             },
-            "Epsilon": {"0.0": 1.0000, "0.2": 1.0000, "0.5": 1.0000},
-            "LR": {"0.01": 1.0000, "0.1": 1.0000, "0.3": 1.0000, "0.5": 1.0000, "0.7": 1.0000},
-            "Step Ratio": {"0.5": 1.0000, "1": 1.0000, "4": 1.0000},
-        },
-        "SARSA": {
-            "Default": {"-": 1.3345},
-            "Sigma": {"0.0": 1.3103, "0.2": 1.2759, "0.3": 1.2069},
-            "Gamma": {
-                "0.7": 1.4828,
-                "0.8": 1.4828,
-                "0.95": 1.0000,
-                "0.99": None,
-                "0.999": None,
-                "0.99999": None,
-            },
-            "Epsilon": {"0.0": 1.7586, "0.2": 1.3103, "0.5": None},
-            "LR": {"0.01": None, "0.1": 1.1034, "0.3": 1.2069, "0.5": None, "0.7": None},
-            "Step Ratio": {"0.5": None, "1": 1.3448, "4": 1.2069},
-        },
-        "Monte Carlo On-Policy": {
-            "Default": {"-": None},
-            "Sigma": {"0.0": None, "0.2": None, "0.3": None},
-            "Gamma": {
-                "0.7": None,
-                "0.8": None,
-                "0.95": 2.9802,
-                "0.99": None,
-                "0.999": None,
-                "0.99999": None,
-            },
-            "Epsilon": {"0.0": None, "0.2": 2.2034, "0.5": 3.7241},
+            "Epsilon": {"0.0": None, "0.2": None, "0.5": None},
             "LR": {"0.01": None, "0.1": None, "0.3": None, "0.5": None, "0.7": None},
             "Step Ratio": {"0.5": None, "1": None, "4": None},
         },
+        "SARSA": {
+            "Default": {"-": 1.1379},
+            "Sigma": {"0.0": 1.2069, "0.2": 1.0345, "0.3": 1.1724},
+            "Gamma": {
+                "0.7": 1.4828,
+                "0.8": 1.4828,
+                "0.9": 1.2759,
+                "0.99": None,
+                "0.999": None,
+                "0.99999": None,
+            },
+            "Epsilon": {"0.0": 1.2414, "0.2": 1.1034, "0.5": None},
+            "LR": {"0.01": None, "0.1": 1.1724, "0.3": None, "0.5": None, "0.7": None},
+            "Step Ratio": {"0.5": 1.1724, "1": 1.0000, "4": 1.1379},
+        },
+        "Monte Carlo On-Policy": {
+            "Default": {"-": 2.9033},
+            "Sigma": {"0.0": 1.6017, "0.2": None, "0.3": None},
+            "Gamma": {
+                "0.7": 2.1931,
+                "0.8": 2.8017,
+                "0.9": 1.9155,
+                "0.99": 7.1397,
+                "0.999": None,
+                "0.99999": None,
+            },
+            "Epsilon": {"0.0": None, "0.2": 3.3000, "0.5": 2.9379},
+            "LR": {"0.01": None, "0.1": None, "0.3": None, "0.5": None, "0.7": None},
+            "Step Ratio": {"0.5": None, "1": 3.8448, "4": 4.9276},
+        },
     },
 }
+
 # Default values for vertical reference lines
 default_params = {
     "Sigma": "0.1",
-    "Gamma": "0.9",
+    "Gamma": "0.95",
     "Epsilon": "0.1",
     "LR": "0.2",
     "Step Ratio": "2",
@@ -162,10 +163,19 @@ for grid in data:
     for algo in data[grid]:
         for category in default_params:
             default_param_value = default_params[category]
-            if default_param_value not in data[grid][algo][category]:
-                # Copy the default performance score
+            param_dict = data[grid][algo][category]
+
+            # Check if all values (excluding default) are None
+            all_none = all(
+                val is None
+                for key, val in param_dict.items()
+                if key != default_param_value
+            )
+
+            # Only add default if not all other values are None
+            if default_param_value not in param_dict and not all_none:
                 default_score = data[grid][algo]["Default"]["-"]
-                data[grid][algo][category][default_param_value] = default_score
+                param_dict[default_param_value] = default_score
 
 # Now, sort the parameter values for consistent plotting
 for grid in data:
@@ -219,24 +229,47 @@ for row, grid in enumerate(grids):
     if all_y_values:
         _min = min(all_y_values)
         _max = max(all_y_values)
-        _range = (_max - _min) * 0.1  # 10% padding
+        _range = (_max - _min) * 0.1
         y_min = _min - _range
         y_max = _max + _range
         y_limits[grid] = (y_min, y_max)
     else:
-        y_limits[grid] = (0, 1)  # Fallback
+        y_limits[grid] = (0, 1)
+
+# Find the number of x-ticks for each category
+category_x_limits = {}
+for category in categories:
+    max_ticks = 0
+    for grid in grids:
+        for algo in algos:
+            param_dict = data[grid][algo][category]
+            num_ticks = len(param_dict)
+            if num_ticks > max_ticks:
+                max_ticks = num_ticks
+    category_x_limits[category] = (-0.5, max_ticks - 0.5)
+
+# For each category, collect all unique x-axis labels
+category_x_labels = {}
+for category in categories:
+    all_labels = set()
+    for grid in grids:
+        for algo in algos:
+            all_labels.update(data[grid][algo][category].keys())
+    category_x_labels[category] = sorted(
+        all_labels,
+        key=lambda x: float(x) if x.replace(".", "").isdigit() else x,
+    )
 
 # Plot the data and set y-axis limits for each row
 for row, grid in enumerate(grids):
     for col, category in enumerate(categories):
         ax = axes[row, col]
+        x_labels = category_x_labels[category]  # Use the global labels for this category
+        x_positions = range(len(x_labels))
 
         for algo in algos:
             param_dict = data[grid][algo][category]
-            x_labels = list(param_dict.keys())
-            y_values = [np.nan if val is None else float(val) for val in param_dict.values()]
-            x_positions = range(len(x_labels))
-
+            y_values = [param_dict.get(label, np.nan) for label in x_labels]
             ax.plot(
                 x_positions,
                 y_values,
@@ -248,7 +281,7 @@ for row, grid in enumerate(grids):
                 label=algo
             )
 
-        # Set x-axis ticks to show all categorical labels
+        # Set x-axis ticks and labels for this category
         ax.set_xticks(x_positions)
         ax.set_xticklabels(x_labels, rotation=40, ha="right")
 
@@ -266,12 +299,14 @@ for row, grid in enumerate(grids):
 
         # Keep grid lines for all subplots
         ax.grid(True, linestyle="--", alpha=1, which="both")
-        
+
         ax.tick_params(axis="x", labelsize=16)
         ax.tick_params(axis="y", labelsize=16)
 
         # Set y-axis limits for this row
         ax.set_ylim(y_limits[grid])
+        
+        ax.set_xlim(category_x_limits[category])
 
         # Enable grid lines for both x and y axes
         ax.grid(True, which="both", linestyle="--", alpha=1)
